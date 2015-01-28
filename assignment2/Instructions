@@ -1,0 +1,9 @@
+Place an eye point at (0,0,0).  
+
+For each pixel (i, j) in 0...(nx-1), 0...(ny-1) make a ray in direction (x,y,z) =  (-1 + 2*(i/(nx-1), -1 + 2*(j/(ny-1)), -1).  Use (nx, ny) = (256, 256). 
+
+Place a sphere with radius 2 at (0, 0, -3)
+
+When a ray misses the sphere, set the pixel to color (red, green, blue) = (0, 0.2*(1+y), 0.1), where y is the y component of the ray direction.
+
+When the ray hits the sphere, compute the surface normal (nx, ny, nz) and use the color (red, green, blue) = ((nx + 1)/2, (ny+1)/2, (nz+1)/2).
