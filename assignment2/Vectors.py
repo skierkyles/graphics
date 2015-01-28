@@ -1,3 +1,5 @@
+from math import sqrt, pow, pi
+
 class Vec3(object):
 	x = None
 	y = None
@@ -8,8 +10,28 @@ class Vec3(object):
 		self.y = y
 		self.z = z
 
+	def __add__(self, b):
+		return Vec3(self.x + b.x, self.y + b.y, self.z + b.z)
+
+	def __sub__(self, b):
+		return Vec3(self.x - b.x, self.y - b.y, self.z - b.z)
+
+	def __mul__(self, b):
+		assert type(b) == float or type(b) == int
+		return Vec3(self.x * b, self.y * b, self.z * b)
+
 	def __str__(self):
 		return "({0}, {1}, {2})".format(self.x, self.y, self.z)
 
 def dot(a, b):
 	return (a.x*b.x) + (a.y*b.y) + (a.z*b.z)
+
+def magnitude(a):
+	return sqrt(a.x**2 + a.y**2 + a.z**2)
+
+def normal(a):
+	mag = magnitude(a)
+	return Vec3(a.x/mag, a.y/mag, a.z/mag)
+
+def unit(a, b):
+	pass

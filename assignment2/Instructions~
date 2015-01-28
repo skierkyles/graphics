@@ -1,8 +1,6 @@
 Place an eye point at (0,0,0).  
 
-For each pixel (i, j) in 0...(nx-1), 0...(ny-1) 
-	make a ray in direction (x,y,z) =  (-1 + 2*(i/(nx-1), -1 + 2*(j/(ny-1)), -1).  
-	Use (nx, ny) = (256, 256). 
+For each pixel (i, j) in 0...(nx-1), 0...(ny-1) make a ray in direction (x,y,z) =  (-1 + 2*(i/(nx-1), -1 + 2*(j/(ny-1)), -1).  Use (nx, ny) = (256, 256). 
 
 Place a sphere with radius 2 at (0, 0, -3)
 
