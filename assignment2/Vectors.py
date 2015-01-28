@@ -16,9 +16,16 @@ class Vec3(object):
 	def __sub__(self, b):
 		return Vec3(self.x - b.x, self.y - b.y, self.z - b.z)
 
+	def __rmul__(self, b):
+		return self.__mul__(b)
+
 	def __mul__(self, b):
 		assert type(b) == float or type(b) == int
 		return Vec3(self.x * b, self.y * b, self.z * b)
+
+	def __div__(self, b):
+		assert type(b) == float or type(b) == int
+		return Vec3(self.x / b, self.y / b, self.z / b)
 
 	def __str__(self):
 		return "({0}, {1}, {2})".format(self.x, self.y, self.z)
@@ -33,5 +40,3 @@ def normal(a):
 	mag = magnitude(a)
 	return Vec3(a.x/mag, a.y/mag, a.z/mag)
 
-def unit(a, b):
-	pass
