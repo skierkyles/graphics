@@ -1,10 +1,6 @@
 from math import sqrt, pow, pi
 
 class Vec3(object):
-	x = None
-	y = None
-	z = None
-
 	def __init__(self, x, y, z):
 		self.x = x
 		self.y = y
@@ -30,6 +26,12 @@ class Vec3(object):
 	def __str__(self):
 		return "({0}, {1}, {2})".format(self.x, self.y, self.z)
 
+	def normal(self):
+		return normal(self)
+
+	def magnitude(self):
+		return magnitude(self)
+
 def dot(a, b):
 	return (a.x*b.x) + (a.y*b.y) + (a.z*b.z)
 
@@ -37,6 +39,6 @@ def magnitude(a):
 	return sqrt(a.x**2 + a.y**2 + a.z**2)
 
 def normal(a):
-	mag = magnitude(a)
-	return Vec3(a.x/mag, a.y/mag, a.z/mag)
+	m = magnitude(a)
+	return Vec3(a.x/m, a.y/m, a.z/m)
 

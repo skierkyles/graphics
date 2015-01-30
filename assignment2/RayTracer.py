@@ -13,7 +13,8 @@ class RayTracer(object):
 
 
 	def trace(self):
-		circle = Sphere(Vec3(0, 0, -3), 2)
+		sphere_center = Vec3(0, 0, -3)
+		circle = Sphere(sphere_center, 2)
 
 		for i in range(0, self.width):
 			for j in range(0, self.height):
@@ -26,10 +27,12 @@ class RayTracer(object):
 				hit_sphere = circle.intersect(self.origin, ray)
 
 				if hit_sphere:
+					nr = ray - sphere_center
+					norm = nr.normal()		
 
-					r = 1 * 256
-					g = 0
-					b = 0
+					r = ((norm.x + 1)/2)*256
+					g = ((norm.y + 1)/2)*256
+					b = ((norm.z + 1)/2)*256
 
 					self.image.putpixel((i,j), (int(r),int(g),int(b)))
 				
@@ -49,40 +52,34 @@ class Sphere(object):
 		self.radius = radius 
 
 	def intersect(self, origin, direction):
-		temp = origin - direction
+		temp = self.center - origin
 		a = dot(direction, direction)
 		b = 2.0 * dot(temp, direction)
 		c = dot(temp, temp) - self.radius * self.radius
 		disc = b * b - 4.0 * a * c
 
-		# print disc
 
 		if (disc > 0.0):
 			e = sqrt(disc)
 			denominator = 2.0 * a
 
-			epsilon = 1.0e-7
+			# epsilon = 1.0e-7
 
-			t = (-b - e) / denominator
-			if (t > epsilon):
-				n = (temp + (t * direction)) / self.radius
-				hp = origin + t * direction
+			# t = (-b - e) / denominator
+			# if (t > epsilon):
+			# 	n = (temp + (t * direction)) / self.radius
+			# 	hp = origin + t * direction
 				
-				return True
+			# 	return True
 
 			# t = (-b + e) / denominator
 			# if (t > epsilon):
 			# 	n = (temp + (t * direction)) / self.radius
 			# 	hp = origin + t * direction
 
-			# 	return True
+			return True
 		
 		return False
-
-class Ray(object):
-	def __init__(self, origin, direction):
-		self.origin = origin
-		self.direction = direction
 
 if __name__ == '__main__':
 	tracer = RayTracer(256, 256, Vec3(0, 0, 0))
