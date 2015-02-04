@@ -8,18 +8,13 @@
 	"buffers":
 	[
 		{
+			"contents": "from Vectors import Vec3, dot, normal\n\nfrom PIL import Image\nfrom math import sqrt, pow, pi\n\n\nclass RayTracer(object):\n	def __init__(self, height, width, origin):\n		self.image = Image.new(\"RGB\", (width, height))\n		self.height = height\n		self.width = width\n		self.origin = origin\n\n\n	def trace(self):\n		sphere_center = Vec3(0, 0, -3)\n		circle = Sphere(sphere_center, 2)\n\n		for i in range(0, self.width):\n			for j in range(0, self.height):\n				x = -1 + 2*(i/(float(self.width)-1)) \n				y = -1 + 2*(j/(float(self.height)-1))\n				z = -1\n\n				ray = Vec3(x, y, z)\n\n				hit_sphere = circle.intersect(self.origin, ray)\n\n				if hit_sphere:\n					nr = ray - sphere_center\n					norm = nr.normal()		\n\n					r = ((norm.x + 1)/2)*256\n					g = ((norm.y + 1)/2)*256\n					b = ((norm.z + 1)/2)*256\n\n					self.image.putpixel((i,j), (int(r),int(g),int(b)))\n				\n				else:\n					r = 0\n					g = 0.2*(1 + ray.y)*256\n					b = 0.1*256\n\n					self.image.putpixel((i,j), (int(r),int(g),int(b)))\n\n	def export(self, file_name):\n		self.image.save(file_name)\n\nclass Sphere(object):\n	def __init__(self, center, radius):\n		self.center = center\n		self.radius = radius \n\n	def intersect(self, origin, direction):\n		temp = self.center - origin\n		a = dot(direction, direction)\n		b = 2.0 * dot(temp, direction)\n		c = dot(temp, temp) - self.radius * self.radius\n		disc = b * b - 4.0 * a * c\n\n\n		if (disc > 0.0):\n			e = sqrt(disc)\n			denominator = 2.0 * a\n\n			# epsilon = 1.0e-7\n\n			# t = (-b - e) / denominator\n			# if (t > epsilon):\n			# 	n = (temp + (t * direction)) / self.radius\n			# 	hp = origin + t * direction\n				\n			# 	return True\n\n			# t = (-b + e) / denominator\n			# if (t > epsilon):\n			# 	n = (temp + (t * direction)) / self.radius\n			# 	hp = origin + t * direction\n\n			return True\n		\n		return False\n\nif __name__ == '__main__':\n	tracer = RayTracer(256, 256, Vec3(0, 0, 0))\n	tracer.trace()\n	tracer.export(\"out.png\")\n",
 			"file": "assignment2/RayTracer.py",
+			"file_size": 1883,
+			"file_write_time": 130670556838550632,
 			"settings":
 			{
-				"buffer_size": 1860,
-				"line_ending": "Unix"
-			}
-		},
-		{
-			"file": "assignment1/assignment1.py",
-			"settings":
-			{
-				"buffer_size": 622,
+				"buffer_size": 1883,
 				"line_ending": "Unix"
 			}
 		},
@@ -27,7 +22,7 @@
 			"file": "assignment2/Vectors.py",
 			"settings":
 			{
-				"buffer_size": 870,
+				"buffer_size": 921,
 				"line_ending": "Unix"
 			}
 		}
@@ -60,11 +55,11 @@
 	"expanded_folders":
 	[
 		"/home/kyle/Development/graphics",
-		"/home/kyle/Development/graphics/assignment1",
 		"/home/kyle/Development/graphics/assignment2"
 	],
 	"file_history":
 	[
+		"/home/kyle/Development/graphics/assignment1/assignment1.py",
 		"/home/kyle/Development/graphics/.gitignore"
 	],
 	"find":
@@ -116,43 +111,15 @@
 					"semi_transient": false,
 					"settings":
 					{
-						"buffer_size": 1860,
+						"buffer_size": 1883,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								500,
-								500
-							]
-						],
-						"settings":
-						{
-							"syntax": "Packages/Python/Python.tmLanguage"
-						},
-						"translation.x": 0.0,
-						"translation.y": 204.0,
-						"zoom_level": 1.0
-					},
-					"stack_index": 0,
-					"type": "text"
-				},
-				{
-					"buffer": 1,
-					"file": "assignment1/assignment1.py",
-					"semi_transient": false,
-					"settings":
-					{
-						"buffer_size": 622,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								10,
-								10
+								451,
+								451
 							]
 						],
 						"settings":
@@ -161,35 +128,36 @@
 							"translate_tabs_to_spaces": false
 						},
 						"translation.x": 0.0,
-						"translation.y": 0.0,
+						"translation.y": 51.0,
 						"zoom_level": 1.0
 					},
-					"stack_index": 2,
+					"stack_index": 0,
 					"type": "text"
 				},
 				{
-					"buffer": 2,
+					"buffer": 1,
 					"file": "assignment2/Vectors.py",
 					"semi_transient": false,
 					"settings":
 					{
-						"buffer_size": 870,
+						"buffer_size": 921,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								597,
-								597
+								51,
+								51
 							]
 						],
 						"settings":
 						{
-							"syntax": "Packages/Python/Python.tmLanguage"
+							"syntax": "Packages/Python/Python.tmLanguage",
+							"translate_tabs_to_spaces": false
 						},
-						"translation.x": -0.0,
-						"translation.y": 153.0,
+						"translation.x": 0.0,
+						"translation.y": 255.0,
 						"zoom_level": 1.0
 					},
 					"stack_index": 1,
@@ -271,7 +239,7 @@
 	"show_open_files": false,
 	"show_tabs": true,
 	"side_bar_visible": true,
-	"side_bar_width": 195.0,
+	"side_bar_width": 152.0,
 	"status_bar_visible": true,
 	"template_settings":
 	{
