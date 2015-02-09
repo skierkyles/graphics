@@ -25,17 +25,19 @@ class RayTracer(object):
 
 				# Add the min stuff here! Instead of the break
 				hit_sphere = False
+				hit_point = None
 				sphere = None
 
 				closest = float("inf")
 
 				for obj in self.objects:
 					hit, distance = obj.intersect(self.origin, ray)
-					# closer = distance < closest
-					closer = True
+					closer = distance < closest
 
-					if hit:
+					if hit and closer:
+						closest = distance
 						hit_sphere = True
+						hit_point = ray*distance
 						sphere = obj
 						
 
@@ -43,7 +45,18 @@ class RayTracer(object):
 				if hit_sphere:
 					nr = ray - obj.center
 
-					self.image.putpixel((i,j), to_int_rgb(obj.color))
+					y_normal_component = hit_point.normal().y
+					y_normal_component = y_normal_component + 1
+					shader = max(0.0, y_normal_component)
+
+					print sphere.color
+					color = (
+						sphere.color[0]*shader,
+						sphere.color[1]*shader,
+						sphere.color[2]*shader,
+						)
+
+					self.image.putpixel((i,j), to_int_rgb(color))
 				
 				else:
 					r = 0
@@ -70,9 +83,9 @@ class RayTracer(object):
 		circle3 = Sphere(sphere3_center, 1, to_256_rgb((0.5, 0.5, 1.0)))
 		self.objects.append(circle3)
 
-		# sphere4_center = Vec3(0, -100, 0)
-		# circle4 = Sphere(sphere4_center, 100, to_256_colors((1.0, 1.0, 1.0)))
-		# self.objects.append(circle4)
+		sphere4_center = Vec3(0, -100, 0)
+		circle4 = Sphere(sphere4_center, 100, to_256_rgb((1.0, 1.0, 1.0)))
+		self.objects.append(circle4)
 
 	def export(self, file_name):
 		self.image.save(file_name)
@@ -98,21 +111,33 @@ class Sphere(object):
 
 			# epsilon = 1.0e-7
 
-			# t = (-b - e) / denominator
+			a = (-b - e) / denominator
 			# if (t > epsilon):
 			# 	n = (temp + (t * direction)) / self.radius
 			# 	hp = origin + t * direction
 				
 			# 	return True
 
-			# t = (-b + e) / denominator
+			b = (-b + e) / denominator
 			# if (t > epsilon):
 			# 	n = (temp + (t * direction)) / self.radius
 			# 	hp = origin + t * direction
 
-			return (True, disc)
+			larger = max(a,b)
+			return (True, larger)
+
+			# if (a < b):
+			# 	return (True, a)
+
+			# else:
+			# 	return (True, b)
+
+			# return (True, disc)
 		
 		return (False, None)
+
+	def __str__(self):
+		return "{0} - {1}".format(self.center, self.color)
 
 if __name__ == '__main__':
 	tracer = RayTracer(256, 256, Vec3(0, 0, 0))

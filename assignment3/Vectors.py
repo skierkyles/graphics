@@ -40,5 +40,8 @@ def magnitude(a):
 
 def normal(a):
 	m = magnitude(a)
-	return Vec3(a.x/m, a.y/m, a.z/m)
+	if m == 0:
+		return Vec3(0, 0, 0)
+	else:
+		return Vec3(a.x/m, a.y/m, a.z/m)
 
