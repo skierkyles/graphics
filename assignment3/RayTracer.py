@@ -17,7 +17,7 @@ class RayTracer(object):
 	def trace(self):
 		for i in range(0, self.width):
 			for j in range(0, self.height):
-				x = -1 + 2*(i/(float(self.width)-1)) 
+				x = -1 + 2*(i/(float(self.width)-1))
 				y = -1 + 2*(j/(float(self.height)-1))
 				z = -1
 
@@ -37,33 +37,46 @@ class RayTracer(object):
 					if hit and closer:
 						closest = distance
 						hit_sphere = True
+						# print ray
 						hit_point = ray*distance
 						sphere = obj
-						
+
 
 
 				if hit_sphere:
-					nr = ray - obj.center
-
 					y_normal_component = hit_point.normal().y
-					y_normal_component = y_normal_component + 1
-					shader = max(0.0, y_normal_component)
+					print hit_point.normal()
+					print y_normal_component
+					# y_normal_component = y_normal_component + 1
+					shader = max(0.0, y_normal_component) + 1
+					# print "Shader {0}".format(shader)
+					# color = sphere.color
+					# print "Old color"
+					# print sphere.color
+					color = sphere.color * shader
+					# print "New color"
+					# print color
 
-					print sphere.color
-					color = (
-						sphere.color[0]*shader,
-						sphere.color[1]*shader,
-						sphere.color[2]*shader,
-						)
 
-					self.image.putpixel((i,j), to_int_rgb(color))
-				
+					for shadow_obj in self.objects:
+						hit, distance = shadow_obj.intersect(hit_point, Vec3(0, 10000, 0))
+
+						not_self = shadow_obj != sphere
+						if hit and not_self:
+							pass
+							# print distance
+							# color = (0, 0, 0)
+
+					self.image.putpixel((i,j), color.get_256_tuple())
+
 				else:
 					r = 0
-					g = 0.2*(1 + ray.y)*256
-					b = 0.1*256
+					g = 0.2*(1 + ray.y)
+					b = 0.1
 
-					self.image.putpixel((i,j), (int(r),int(g),int(b)))
+					bg = RGBColor(r, g, b)
+
+					self.image.putpixel((i,j), bg.get_256_tuple())
 
 	def add_objects(self):
 		# center (0, 1, -3) radius 1   object_color = (1.0, 0.5, 0.5)
@@ -72,19 +85,19 @@ class RayTracer(object):
 		# center (0, -100, 0) radius 100    object_color = (1.0, 1.0, 1.0)
 
 		sphere1_center = Vec3(0, 1, -3)
-		circle1 = Sphere(sphere1_center, 1, to_256_rgb((1.0, 0.5, 0.5)))
+		circle1 = Sphere(sphere1_center, 1, RGBColor(1.0, 0.5, 0.5))
 		self.objects.append(circle1)
 
 		sphere2_center = Vec3(2, 1, -4)
-		circle2 = Sphere(sphere2_center, 1, to_256_rgb((0.5, 1.0, 0.5)))
+		circle2 = Sphere(sphere2_center, 1, RGBColor(0.5, 1.0, 0.5))
 		self.objects.append(circle2)
 
 		sphere3_center = Vec3(-2, 1, -3)
-		circle3 = Sphere(sphere3_center, 1, to_256_rgb((0.5, 0.5, 1.0)))
+		circle3 = Sphere(sphere3_center, 1, RGBColor(0.5, 0.5, 1.0))
 		self.objects.append(circle3)
 
 		sphere4_center = Vec3(0, -100, 0)
-		circle4 = Sphere(sphere4_center, 100, to_256_rgb((1.0, 1.0, 1.0)))
+		circle4 = Sphere(sphere4_center, 100, RGBColor(1.0, 1.0, 1.0))
 		self.objects.append(circle4)
 
 	def export(self, file_name):
@@ -93,10 +106,10 @@ class RayTracer(object):
 class Sphere(object):
 	def __init__(self, center, radius, color):
 		self.center = center
-		self.radius = radius 
+		self.radius = radius
 		self.color = color
 
-	# Returns if it hit and the distance it hit at. 
+	# Returns if it hit and the distance it hit at.
 	def intersect(self, origin, direction):
 		temp = self.center - origin
 		a = dot(direction, direction)
@@ -115,7 +128,7 @@ class Sphere(object):
 			# if (t > epsilon):
 			# 	n = (temp + (t * direction)) / self.radius
 			# 	hp = origin + t * direction
-				
+
 			# 	return True
 
 			b = (-b + e) / denominator
@@ -133,7 +146,7 @@ class Sphere(object):
 			# 	return (True, b)
 
 			# return (True, disc)
-		
+
 		return (False, None)
 
 	def __str__(self):

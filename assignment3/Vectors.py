@@ -2,9 +2,9 @@ from math import sqrt, pow, pi
 
 class Vec3(object):
 	def __init__(self, x, y, z):
-		self.x = x
-		self.y = y
-		self.z = z
+		self.x = float(x)
+		self.y = float(y)
+		self.z = float(z)
 
 	def __add__(self, b):
 		return Vec3(self.x + b.x, self.y + b.y, self.z + b.z)
@@ -24,7 +24,7 @@ class Vec3(object):
 		return Vec3(self.x / b, self.y / b, self.z / b)
 
 	def __str__(self):
-		return "({0}, {1}, {2})".format(self.x, self.y, self.z)
+		return "Vec3({0}, {1}, {2})".format(self.x, self.y, self.z)
 
 	def normal(self):
 		return normal(self)
@@ -41,7 +41,8 @@ def magnitude(a):
 def normal(a):
 	m = magnitude(a)
 	if m == 0:
+		print "Magnitude is messed up, it's a zero."
 		return Vec3(0, 0, 0)
 	else:
+		print "A = {0}, m = {1}".format(a,m)
 		return Vec3(a.x/m, a.y/m, a.z/m)
-
