@@ -24,54 +24,43 @@ class RayTracer(object):
 
 				ray = Vec3(x, y, z)
 
-				# Add the min stuff here! Instead of the break
-				hit_sphere = False
+				ray_hit_object = False
 				hit_point = None
-				sphere = None
+				hit_object = None
+				distance_to_closest_hit = float("inf")
 
-				closest = float("inf")
 
 				for obj in self.objects:
 					hit, distance = obj.intersect(self.origin, ray)
-					closer = distance < closest
+					closer = distance < distance_to_closest_hit
 
 					if hit and closer:
-						closest = distance
-						hit_sphere = True
-						# print ray
-						# print "The ray sent out is {0}".format(ray)
-						hit_point = ray*distance
-						# print "Hit Point is then {0}".format(hit_point)
-						sphere = obj
+						distance_to_closest_hit = distance
 
+						ray_hit_object = True
+						hit_point = ray * distance #A scalar
+						hit_object = obj
 
+				if hit_object:
+					# Calculate shading
+					y_normal_component = hit_point.normal().y
+					print y_normal_component
+					shader = max(0.0, -y_normal_component)
+					color = hit_object.color * shader
 
-				if hit_sphere:
-					# y_normal_component = hit_point.normal().y
-					# shader = max(0.0, -y_normal_component)
-					# color = sphere.color * shader
-					color = sphere.color
+					# color = hit_object.color
 
-					# for secondary_obj in self.objects:
-					# 	hit, distance = secondary_obj.intersect(hit_point, Vec3(0, -1, 0))
-					#
-					# 	not_self = secondary_obj != sphere
-					# 	if hit and not_self:
-					# 		# print "Starting from {0}, hp: {1}".format(sphere.name, hit_point)
-					# 		# print "It hit {0}".format(secondary_obj.name)
-					# 		color = RGBColor(0, 0, 0)
+					# Calculate shadows
+					for shadow_obj in self.objects:
+						hit, distance = shadow_obj.intersect(hit_point, Vec3(0, -1, 0))
 
-					# for shadow_obj in self.objects:
-					# 	hit, distance = shadow_obj.intersect(hit_point, Vec3(0, 1, 0))
-					#
-					# 	not_self = shadow_obj != sphere
-					# 	if hit:
-					#
-					# 		# print "Hit a circle"
-					# 		# print shadow_obj.name
-					# 		# print "Hit at {0} far away".format(distance)
-					# 		# print distance
-					# 		color = RGBColor(0, 0, 0)
+						not_self = shadow_obj != hit_object
+
+						if hit and not_self:
+							color = RGBColor(0,0,0)
+
+					# color = hit_object.color
+
 
 					self.image.putpixel((i,j), color.get_256_tuple())
 
@@ -80,8 +69,8 @@ class RayTracer(object):
 					g = 0.2*(1 + ray.y)
 					b = 0.1
 
-					# bg = RGBColor(r, g, b)
-					bg = RGBColor(0, 0, 0)
+					bg = RGBColor(r, g, b)
+					# bg = RGBColor(0, 0, 0)
 
 					self.image.putpixel((i,j), bg.get_256_tuple())
 
@@ -104,14 +93,14 @@ class RayTracer(object):
 		self.objects.append(circle3)
 
 		sphere4_center = Vec3(0, -100, 0)
-		circle4 = Sphere(sphere4_center, 100, RGBColor(1.0, 1.0, 1.0), name="Monster")
-		# self.objects.append(circle4)
+		circle4 = Sphere(sphere4_center, 99, RGBColor(1.0, 1.0, 1.0), name="Monster")
+		self.objects.append(circle4)
 
 	def export(self, file_name):
 		self.image.save(file_name)
 
 if __name__ == '__main__':
-	tracer = RayTracer(100, 100, Vec3(0, 0, 0))
+	tracer = RayTracer(256, 256, Vec3(0, 0, 0))
 	tracer.add_objects()
 	tracer.trace()
 	tracer.export("out.png")
