@@ -1,3 +1,5 @@
+import numpy as np
+
 from math import sqrt, pow, pi
 
 class Vec3(object):
@@ -33,7 +35,8 @@ class Vec3(object):
 		return magnitude(self)
 
 def dot(a, b):
-	return (a.x*b.x) + (a.y*b.y) + (a.z*b.z)
+	return np.dot((a.x, a.y, a.z), (b.x, b.y, b.z)).item()
+
 
 def magnitude(a):
 	return sqrt(a.x**2 + a.y**2 + a.z**2)
@@ -41,8 +44,8 @@ def magnitude(a):
 def normal(a):
 	m = magnitude(a)
 	if m == 0:
-		print "Magnitude is messed up, it's a zero."
+		# print "Magnitude is messed up, it's a zero."
 		return Vec3(0, 0, 0)
 	else:
-		print "A = {0}, m = {1}".format(a,m)
+		# print "A = {0}, m = {1}".format(a,m)
 		return Vec3(a.x/m, a.y/m, a.z/m)
