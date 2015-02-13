@@ -38,18 +38,19 @@ class RayTracer(object):
 						distance_to_closest_hit = distance
 
 						ray_hit_object = True
-						hit_point = ray * distance #A scalar
+						hit_point = self.origin + ray * distance #A scalar
 						hit_object = obj
 
 				if hit_object:
 					# Calculate shading
+					# So take the point on the surface of the sphere
+					# then, figure out the distance from it to the center.
+					# Then take the normal of that.
 					unit_normal = hit_point - hit_object.center
 					normal_vector = unit_normal.normal()
 
 					shader = max(0.0, normal_vector.y)
 					color = hit_object.color * shader
-
-					# color = hit_object.color
 
 					# Calculate shadows
 					for shadow_obj in self.objects:
@@ -60,8 +61,6 @@ class RayTracer(object):
 						if hit and not_self:
 							color = RGBColor(0,0,0)
 
-					# color = hit_object.color
-
 
 					self.image.putpixel((i,j), color.get_256_tuple())
 
@@ -71,16 +70,10 @@ class RayTracer(object):
 					b = 0.1
 
 					bg = RGBColor(r, g, b)
-					# bg = RGBColor(0, 0, 0)
 
 					self.image.putpixel((i,j), bg.get_256_tuple())
 
 	def add_objects(self):
-		# center (0, 1, -3) radius 1   object_color = (1.0, 0.5, 0.5)
-		# center (2, 1, -4) radius 1    object_color = (0.5, 1.0, 0.5)
-		# center (-2, 1, -3) radius 1    object_color = (0.5, 0.5, 1.0)
-		# center (0, -100, 0) radius 100    object_color = (1.0, 1.0, 1.0)
-
 		sphere1_center = Vec3(0, 0, -3)
 		circle1 = Sphere(sphere1_center, 1, RGBColor(1.0, 0.5, 0.5)) #Red
 		self.objects.append(circle1)
@@ -101,7 +94,7 @@ class RayTracer(object):
 		self.image.save(file_name)
 
 if __name__ == '__main__':
-	tracer = RayTracer(512, 512, Vec3(0, 0, 0))
+	tracer = RayTracer(100, 100, Vec3(0, 0, 0))
 	tracer.add_objects()
 	tracer.trace()
 	tracer.export("out.png")

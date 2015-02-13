@@ -35,17 +35,13 @@ class Vec3(object):
 		return magnitude(self)
 
 def dot(a, b):
-	return np.dot((a.x, a.y, a.z), (b.x, b.y, b.z)).item()
-
+	return (a.x * b.x) + (a.y * b.y) + (a.z * b.z)
 
 def magnitude(a):
 	return sqrt(a.x**2 + a.y**2 + a.z**2)
 
 def normal(a):
 	m = magnitude(a)
-	if m == 0:
-		# print "Magnitude is messed up, it's a zero."
-		return Vec3(0, 0, 0)
-	else:
-		# print "A = {0}, m = {1}".format(a,m)
-		return Vec3(a.x/m, a.y/m, a.z/m)
+	assert m != 0
+
+	return Vec3(a.x/m, a.y/m, a.z/m)

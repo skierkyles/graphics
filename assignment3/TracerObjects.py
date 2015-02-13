@@ -30,7 +30,6 @@ class Sphere(object):
 			else:
 				t1 = c / q
 
-			# TODO: INVESTIGATE IF IT"S RETURNING the proper one
 			t0, t1 = min(t0, t1), max(t0, t1)
 			if t1 >= 0:
 				return (True, t1) if t0 < 0 else (True, t0)

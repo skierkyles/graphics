@@ -15,7 +15,7 @@ class RGBColor(object):
 		return (self.r, self.g, self.b)
 
 	def get_256_tuple(self):
-		return to_int256_rgb((self.r, self.g, self.b))
+		return to_int256_rgb(self.get_tuple())
 
 	def __str__(self):
 		return "RGBColor({0}, {1}, {2})".format(self.r, self.g, self.b)
