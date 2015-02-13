@@ -19,7 +19,7 @@ class RayTracer(object):
 		for i in range(0, int(self.width)):
 			for j in range(0, int(self.height)):
 				x = -1 + 2*(i/((self.width)-1))
-				y = -1 + 2*(j/((self.height)-1))
+				y = 1 - 2*(j/((self.height)-1))
 				z = -1
 
 				ray = Vec3(x, y, z)
@@ -43,16 +43,17 @@ class RayTracer(object):
 
 				if hit_object:
 					# Calculate shading
-					y_normal_component = hit_point.normal().y
-					print y_normal_component
-					shader = max(0.0, -y_normal_component)
+					unit_normal = hit_point - hit_object.center
+					normal_vector = unit_normal.normal()
+
+					shader = max(0.0, normal_vector.y)
 					color = hit_object.color * shader
 
 					# color = hit_object.color
 
 					# Calculate shadows
 					for shadow_obj in self.objects:
-						hit, distance = shadow_obj.intersect(hit_point, Vec3(0, -1, 0))
+						hit, distance = shadow_obj.intersect(hit_point, Vec3(0, 1, 0))
 
 						not_self = shadow_obj != hit_object
 
@@ -66,7 +67,7 @@ class RayTracer(object):
 
 				else:
 					r = 0
-					g = 0.2*(1 + ray.y)
+					g = 0.2*(1 - ray.y)
 					b = 0.1
 
 					bg = RGBColor(r, g, b)
@@ -80,27 +81,27 @@ class RayTracer(object):
 		# center (-2, 1, -3) radius 1    object_color = (0.5, 0.5, 1.0)
 		# center (0, -100, 0) radius 100    object_color = (1.0, 1.0, 1.0)
 
-		sphere1_center = Vec3(0, 1, -3)
+		sphere1_center = Vec3(0, 0, -3)
 		circle1 = Sphere(sphere1_center, 1, RGBColor(1.0, 0.5, 0.5)) #Red
 		self.objects.append(circle1)
 
-		sphere2_center = Vec3(2, 1, -4)
+		sphere2_center = Vec3(2, 0, -4)
 		circle2 = Sphere(sphere2_center, 1, RGBColor(0.5, 1.0, 0.5)) #Green
 		self.objects.append(circle2)
 
-		sphere3_center = Vec3(-2, 1, -3)
+		sphere3_center = Vec3(-2, 0, -3)
 		circle3 = Sphere(sphere3_center, 1, RGBColor(0.5, 0.5, 1.0)) #Blue
 		self.objects.append(circle3)
 
 		sphere4_center = Vec3(0, -100, 0)
-		circle4 = Sphere(sphere4_center, 99, RGBColor(1.0, 1.0, 1.0), name="Monster")
+		circle4 = Sphere(sphere4_center, 98.5, RGBColor(1.0, 1.0, 1.0), name="Monster")
 		self.objects.append(circle4)
 
 	def export(self, file_name):
 		self.image.save(file_name)
 
 if __name__ == '__main__':
-	tracer = RayTracer(256, 256, Vec3(0, 0, 0))
+	tracer = RayTracer(512, 512, Vec3(0, 0, 0))
 	tracer.add_objects()
 	tracer.trace()
 	tracer.export("out.png")
