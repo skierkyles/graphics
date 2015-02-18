@@ -5,6 +5,7 @@ from TracerObjects import Sphere
 from PIL import Image
 from math import sqrt, pow, pi
 
+import random
 
 class RayTracer(object):
 	def __init__(self, height, width, origin):
@@ -54,7 +55,9 @@ class RayTracer(object):
 
 					# Calculate shadows
 					for shadow_obj in self.objects:
-						hit, distance = shadow_obj.intersect(hit_point, Vec3(0, 1, 0))
+						# semi_rand = Vec3(-1+2*random.random(),2*random.random(),-1+2*random.random())
+						up = Vec3(0, 1, 0)
+						hit, distance = shadow_obj.intersect(hit_point, up)
 
 						not_self = shadow_obj != hit_object
 
@@ -94,7 +97,7 @@ class RayTracer(object):
 		self.image.save(file_name)
 
 if __name__ == '__main__':
-	tracer = RayTracer(100, 100, Vec3(0, 0, 0))
+	tracer = RayTracer(5000, 5000, Vec3(0, 0, 0))
 	tracer.add_objects()
 	tracer.trace()
 	tracer.export("out.png")
