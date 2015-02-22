@@ -97,7 +97,7 @@ class RayTracer(object):
 		self.image.save(file_name)
 
 if __name__ == '__main__':
-	tracer = RayTracer(256, 256, Vec3(0, 0, 0))
+	tracer = RayTracer(5000, 5000, Vec3(0, 0, 0))
 	tracer.add_objects()
 	tracer.trace()
 	tracer.export("out.png")
