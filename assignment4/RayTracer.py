@@ -27,39 +27,53 @@ class RayTracer(object):
 
 				ray = Ray(self.origin, Vec3(x, y, z))
 
-				ray_hit_object = False
-				hit_point = None
-				hit_object = None
-				distance_to_closest_hit = float("inf")
-
-
-				for obj in self.objects:
-					hit, distance = obj.intersect(ray)
-					closer = distance < distance_to_closest_hit
-
-					if hit and closer:
-						distance_to_closest_hit = distance
-
-						ray_hit_object = True
-						hit_point = ray.origin + ray.destination * distance #A scalar
-						hit_object = obj
+				# Check this out for structure.
+				# http://www.cs.jhu.edu/~cohen/RendTech99/Lectures/Ray_Tracing.bw.pdf
+				ray_hit_object, hit_point, hit_object = self.intersectedObject(ray)
 
 				if ray_hit_object:
-					color = self.hit_point_color(hit_point, hit_object)
-
-
-					self.image.putpixel((i,j), color.get_256_tuple())
+					color = self.hit_point_color(hit_point, hit_object, ray)
+					if color != None:
+						self.image.putpixel((i,j), color.get_256_tuple())
+					else:
+						self.image.putpixel((i,j), self.backgroundColor(ray))
 
 				else:
-					r = 0
-					g = 0.2*(1 - ray.destination.y)
-					b = 0.1
+					self.image.putpixel((i,j), self.backgroundColor(ray))
 
-					bg = RGBColor(r, g, b)
+	def backgroundColor(self, ray):
+		r = 0
+		g = 0.2*(1 - ray.destination.y)
+		b = 0.1
 
-					self.image.putpixel((i,j), bg.get_256_tuple())
+		return RGBColor(r, g, b).get_256_tuple()
 
-	def hit_point_color(self, hit_point, hit_object):
+	def intersectedObject(self, ray):
+		ray_hit_object = False
+		hit_point = None
+		hit_object = None
+		distance_to_closest_hit = float("inf")
+
+		# Check this out for structure.
+		# http://www.cs.jhu.edu/~cohen/RendTech99/Lectures/Ray_Tracing.bw.pdf
+		for obj in self.objects:
+			hit, distance = obj.intersect(ray)
+			closer = distance < distance_to_closest_hit
+
+			if hit and closer:
+				distance_to_closest_hit = distance
+
+				ray_hit_object = True
+				hit_point = ray.origin + ray.destination * distance #A scalar
+				hit_object = obj
+
+		if ray_hit_object:
+			# (Hit object (bool), hp, ho)
+			return (True, hit_point, hit_object)
+		else:
+			return (False, None, None)
+
+	def hit_point_color(self, hit_point, hit_object, hit_ray):
 		unit_normal = hit_point - hit_object.center
 		normal_vector = unit_normal.normal()
 
@@ -68,9 +82,12 @@ class RayTracer(object):
 		# then, figure out the distance from it to the center.
 		# Then take the normal of that.
 		color = hit_object.color
-		if hit_object.is_light is False:
+		if hit_object.is_light is False and hit_object.is_mirror is False:
 			shader = max(0.0, normal_vector.y)
 			color = hit_object.color * shader
+
+		if hit_object.is_mirror:
+			color = self.recursiveReflections(hit_object, hit_point, hit_ray, normal_vector)
 
 		# Calculate shadows
 		for shadow_obj in self.objects:
@@ -87,15 +104,46 @@ class RayTracer(object):
 		return color
 
 
+	def recursiveReflections(self, obj, initial_hit, ray, normal, depth=0):
+		print "hit v dest"
+		print initial_hit
+		print ray.destination
+		print normal
+		# Ray.destination might be initial_hit actually.
+
+		# https://www.cs.unc.edu/~rademach/xroads-RT/RTarticle.html
+		c1 = -dot(ray.destination, initial_hit) #This is a integer!!
+		rl = ray.destination + (2 * normal * c1)
+
+		reflection_ray = Ray(initial_hit, rl)
+
+		ray_hit_object, hit_point, hit_object = self.intersectedObject(reflection_ray)
+
+
+		if ray_hit_object and hit_object is not obj:
+			return self.hit_point_color(hit_point, hit_object, reflection_ray)
+		else:
+			# return background color!!
+			return RGBColor(0,0,0)
+
+		# print "Reflection of {0}".format(ray.destination)
+		# print rl
+
+		# if depth >= MAX_DEPTH:
+		# 	return "Done!"
+		#
+		# else:
+		# 	return self.recursiveReflections(obj, initial_hit, ray, normal, depth=depth+1)
+
 	def add_objects(self):
 		# Vec3(left right, up down, back forth)
 
-		light_center = Vec3(0, 2, -5)
+		light_center = Vec3(0, 10, 0)
 		light_sphere = Sphere(light_center, 1, RGBColor(1.0, 1.0, 1.0), is_light=True)
 		self.objects.append(light_sphere)
 
-		sphere1_center = Vec3(0, 0, -3)
-		red_center = Sphere(sphere1_center, 1, RGBColor(1.0, 0.5, 0.5), is_mirror=True) #Red
+		sphere1_center = Vec3(0, 1, -6)
+		red_center = Sphere(sphere1_center, 2, RGBColor(1.0, 0.5, 0.5), is_mirror=True) #Red
 		self.objects.append(red_center)
 
 		sphere2_center = Vec3(2, 0, -4)
@@ -120,7 +168,8 @@ class Ray(object):
 
 
 if __name__ == '__main__':
-	tracer = RayTracer(200, 200, Vec3(0, 0, 0))
+	# Vec3(left right, up down, back forth)
+	tracer = RayTracer(300, 300, Vec3(0, 2, 2))
 	tracer.add_objects()
 	tracer.trace()
 	tracer.export("out.png")
