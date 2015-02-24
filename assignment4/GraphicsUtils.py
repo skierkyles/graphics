@@ -11,6 +11,9 @@ class RGBColor(object):
 		assert type(b) == float or type(b) == int
 		return RGBColor(self.r * b, self.g * b, self.b * b)
 
+	def get_invert(self):
+		return invert(self)
+
 	def get_tuple(self):
 		return (self.r, self.g, self.b)
 
@@ -19,6 +22,9 @@ class RGBColor(object):
 
 	def __str__(self):
 		return "RGBColor({0}, {1}, {2})".format(self.r, self.g, self.b)
+
+def invert(color):
+	return RGBColor(1 - color.r, 1 - color.g, 1 - color.b)
 
 def to_256_rgb(rgb):
 	r = rgb[0] * 256

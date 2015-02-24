@@ -1,13 +1,14 @@
 from Vectors import Vec3, dot, normal
 from GraphicsUtils import *
 
-from math import sqrt, pow, pi
+from math import sqrt, pow, pi, floor
 
 class Sphere(object):
-	def __init__(self, center, radius, color=None, name=None, is_mirror=False, is_light=False):
+	def __init__(self, center, radius, color=None, pattern="solid", name=None, is_mirror=False, is_light=False):
 		self.center = center
 		self.radius = float(radius)
 		self.color = color
+		self.pattern = pattern
 
 		self.is_mirror = is_mirror
 		self.is_light = is_light
@@ -16,6 +17,29 @@ class Sphere(object):
 			self.name = "A circle of size {0} at {1}".format(self.radius, self.center)
 		else:
 			self.name = name
+
+	def colorAtPoint(self, point):
+
+		if self.pattern == "related_abs":
+			return RGBColor(self.color.r * abs(point.x),
+							self.color.g * abs(point.y),
+							self.color.b * abs(point.z))
+		elif self.pattern == "checkerboard":
+			SCALE = .8
+			OFFSET = 21423142
+
+			x = floor((point.x + OFFSET) / SCALE) % 2 == 0
+			y = floor((point.y + OFFSET) / SCALE) % 2 == 0
+			z = floor((point.z + OFFSET) / SCALE) % 2 == 0
+
+			if (x ^ y ^ z):
+				return self.color
+			else:
+				return self.color.get_invert()
+		else:
+			return self.color
+
+
 
 	# Returns if it hit and the distance it hit at.
 	def intersect(self, ray):
