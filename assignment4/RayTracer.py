@@ -30,24 +30,15 @@ class RayTracer(object):
 
 				# Check this out for structure.
 				# http://www.cs.jhu.edu/~cohen/RendTech99/Lectures/Ray_Tracing.bw.pdf
-				ray_hit_object, hit_point, hit_object = self.intersectedObject(ray)
-
-				if ray_hit_object:
-					color = self.hit_point_color(hit_point, hit_object, ray)
-					if color != None:
-						self.image.putpixel((i,j), color.get_256_tuple())
-					else:
-						self.image.putpixel((i,j), self.backgroundColor(ray))
-
-				else:
-					self.image.putpixel((i,j), self.backgroundColor(ray))
+				color = self.ray_point_color(ray)
+				self.image.putpixel((i,j), color.get_256_tuple())
 
 	def backgroundColor(self, ray):
 		r = 0
 		g = 0.2*(1 - ray.destination.y)
 		b = 0.1
 
-		return RGBColor(r, g, b).get_256_tuple()
+		return RGBColor(r, g, b)
 
 	def intersectedObject(self, ray):
 		ray_hit_object = False
@@ -74,35 +65,43 @@ class RayTracer(object):
 		else:
 			return (False, None, None)
 
-	def hit_point_color(self, hit_point, hit_object, hit_ray):
-		unit_normal = hit_point - hit_object.center
-		normal_vector = unit_normal.normal()
+	def ray_point_color(self, ray):
+		ray_hit_object, hit_point, hit_object = self.intersectedObject(ray)
 
-		# Calculate shading
-		# So take the point on the surface of the sphere
-		# then, figure out the distance from it to the center.
-		# Then take the normal of that.
-		color = hit_object.color
-		if hit_object.is_light is False and hit_object.is_mirror is False:
-			shader = max(0.0, normal_vector.y)
-			color = hit_object.colorAtPoint(hit_point) * shader
+		if ray_hit_object:
+			unit_normal = hit_point - hit_object.center
+			normal_vector = unit_normal.normal()
 
-		if hit_object.is_mirror:
-			color = self.recursiveReflections(hit_object, hit_point, hit_ray, normal_vector)
+			# Calculate shading
+			# So take the point on the surface of the sphere
+			# then, figure out the distance from it to the center.
+			# Then take the normal of that.
+			color = hit_object.color
+			if hit_object.is_light is False and hit_object.is_mirror is False:
+				shader = max(0.0, normal_vector.y)
+				color = hit_object.colorAtPoint(hit_point) * shader
 
-		# Calculate shadows
-		for shadow_obj in self.objects:
-			# semi_rand = Vec3(-1+2*random.random(),2*random.random(),-1+2*random.random())
-			shadow_ray = Ray(hit_point, Vec3(0, 1, 0))
+			if hit_object.is_mirror:
+				color = self.recursiveReflections(hit_object, hit_point, ray, normal_vector)
 
-			hit, distance = shadow_obj.intersect(shadow_ray)
+			# Calculate shadows
+			for shadow_obj in self.objects:
+				# semi_rand = Vec3(-1+2*random.random(),2*random.random(),-1+2*random.random())
+				shadow_ray = Ray(hit_point, Vec3(0, 1, 0))
 
-			not_self = shadow_obj != hit_object
+				hit, distance = shadow_obj.intersect(shadow_ray)
 
-			if hit and not_self:
-				color = RGBColor(0,0,0)
+				not_self = shadow_obj != hit_object
+				is_not_a_light = shadow_obj.is_light == False
 
-		return color
+				if hit and not_self and is_not_a_light:
+					color = RGBColor(0,0,0)
+
+			return color
+
+		else:
+			return self.backgroundColor(ray)
+
 
 
 	def recursiveReflections(self, obj, initial_hit, ray, normal, depth=0):
@@ -113,16 +112,8 @@ class RayTracer(object):
 		# c = (2 * dot(ray.destination, normal) * normal)
 		# reflection = (ray.destination - c).normal()
 
-		# Do the multiplication to prevent math errors
 		reflection_ray = Ray(initial_hit + normal * TINY, reflection)
-
-		ray_hit_object, hit_point, hit_object = self.intersectedObject(reflection_ray)
-
-		if ray_hit_object and hit_object is not obj:
-			return self.hit_point_color(hit_point, hit_object, reflection_ray)
-		else:
-			# return background color!!
-			return RGBColor(0,0,0)
+		return self.ray_point_color(reflection_ray)
 
 		# print "Reflection of {0}".format(ray.destination)
 		# print rl
@@ -142,9 +133,8 @@ class RayTracer(object):
 							is_light=True)
 		self.objects.append(light_sphere)
 
-		sphere1_center = Vec3(0, 0, -5)
-		red_center = Sphere(sphere1_center, 1,
-							is_mirror=True) #Red
+		sphere1_center = Vec3(0, 0, -3)
+		red_center = Sphere(sphere1_center, 1, color=RGBColor(1.0, 0.5, 0.5)) #Red
 		self.objects.append(red_center)
 
 		sphere2_center = Vec3(2, 0, -4)
@@ -155,14 +145,13 @@ class RayTracer(object):
 		sphere3_center = Vec3(-2, 0, -3)
 		blue_left = Sphere(sphere3_center, 1,
 							color=RGBColor(0.5, 0.5, 1.0),
-							pattern="related_abs") #Blue
+							is_mirror=True) #Blue
 		self.objects.append(blue_left)
 
 		sphere4_center = Vec3(0, -100, 0)
 		circle4 = Sphere(sphere4_center, 98.5,
 							color=RGBColor(1.0, 1.0, 1.0),
-							name="Monster",
-							pattern="checkerboard")
+							name="Monster")
 		self.objects.append(circle4)
 
 	def export(self, file_name):
@@ -176,7 +165,7 @@ class Ray(object):
 
 if __name__ == '__main__':
 	# Vec3(left right, up down, back forth)
-	tracer = RayTracer(600, 600, Vec3(0, 2, 2))
+	tracer = RayTracer(450, 450, Vec3(0, 0, 0))
 	tracer.add_objects()
 	tracer.trace()
 	tracer.export("out.png")
