@@ -1,0 +1,13 @@
+Make one of the small spheres from the last assignment a perfect mirror.
+
+
+
+Also add a "light" sphere at
+
+center (0, 10, 0) radius 1
+
+which is always color (1,1,1) for any ray that hits it.
+
+
+
+Extra credit: add refraction for a "hollow" sphere defined as a sphere of radius 1 and another with the same center and radius 0.9
