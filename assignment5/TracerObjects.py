@@ -12,7 +12,11 @@ class Sphere(object):
 
 		self.is_mirror = is_mirror
 		self.is_light = is_light
-		self.casts_shadow = True if casts_shadow == None else True
+		if casts_shadow == None:
+			self.casts_shadow = False if self.is_light else True
+		else:
+			self.casts_shadow = casts_shadow
+
 
 		if name == None:
 			self.name = "A circle of size {0} at {1}".format(self.radius, self.center)

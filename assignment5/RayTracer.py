@@ -85,23 +85,45 @@ class RayTracer(object):
 				color = self.recursiveReflections(hit_object, hit_point, ray, normal_vector)
 
 			# Calculate shadows
-			for shadow_obj in self.objects:
-				# semi_rand = Vec3(-1+2*random.random(),2*random.random(),-1+2*random.random())
-				shadow_ray = Ray(hit_point, Vec3(0, 1, 0))
+			color = self.calculate_shadow(color, hit_point, hit_object)
 
-				hit, distance = shadow_obj.intersect(shadow_ray)
-
-				not_self = shadow_obj != hit_object
-				is_not_a_light = shadow_obj.is_light == False
-
-				if hit and not_self and is_not_a_light:
-					color = RGBColor(0,0,0)
+			# for shadow_obj in self.objects:
+			# 	# semi_rand = Vec3(-1+2*random.random(),2*random.random(),-1+2*random.random())
+			# 	shadow_ray = Ray(hit_point, Vec3(0, 1, 0))
+			#
+			# 	hit, distance = shadow_obj.intersect(shadow_ray)
+			#
+			# 	not_self = shadow_obj != hit_object
+			#
+			# 	if hit and not_self and shadow_obj.casts_shadow:
+			#
+			# 	color = self.shadow_point_color(hit_point, shadow_obj)
 
 			return color
 
 		else:
 			return self.backgroundColor(ray)
 
+	def calculate_shadow(self, original_color, hit_point, hit_object):
+		SHADOW_DEPTH = 10
+
+		color = original_color
+
+
+		semi_rand = Vec3(-1+2*random.random(),1,-1+2*random.random())
+
+		for obj in self.objects:
+			for x in range(0, SHADOW_DEPTH):
+				shadow_ray = Ray(hit_point, semi_rand)
+				hit, distance = obj.intersect(shadow_ray)
+
+				not_self = obj != hit_object
+
+				if hit and not_self and obj.casts_shadow:
+					color = color.get_darker()
+
+		return color
+		# return RGBColor(0, 0, 0)
 
 
 	def recursiveReflections(self, obj, initial_hit, ray, normal, depth=0):
@@ -134,7 +156,8 @@ class RayTracer(object):
 		self.objects.append(light_sphere)
 
 		sphere1_center = Vec3(0, 0, -3)
-		red_center = Sphere(sphere1_center, 1, color=RGBColor(1.0, 0.5, 0.5)) #Red
+		red_center = Sphere(sphere1_center, 1,
+							color=RGBColor(1.0, 0.5, 0.5)) #Red
 		self.objects.append(red_center)
 
 		sphere2_center = Vec3(2, 0, -4)
@@ -165,7 +188,7 @@ class Ray(object):
 
 if __name__ == '__main__':
 	# Vec3(left right, up down, back forth)
-	tracer = RayTracer(450, 450, Vec3(0, 0, 0))
+	tracer = RayTracer(200, 200, Vec3(0, 0, 0))
 	tracer.add_objects()
 	tracer.trace()
 	tracer.export("out.png")
