@@ -1,11 +1,12 @@
 var image = document.querySelector('#drawing');
-var width = 500 * 0.5;
-var height = 500 * 0.5;
+// var width = 700 * 0.5;
+// var height = 700 * 0.5;
+var width = window.innerWidth - 20, height = window.innerHeight - 20;
 
 image.width = width;
 image.height = height;
 
-image.style.cssText = 'width:' + (width * 2) + 'px;height:' + (height * 2) + 'px';
+image.style.cssText = 'width:' + (width) + 'px;height:' + (height) + 'px';
 
 var ctx = image.getContext('2d');
 var data = ctx.getImageData(0, 0, width, height);
@@ -32,31 +33,48 @@ scene.camera = {
 scene.lights = [
   {
     x: 0,
-    y: 10,
+    y: -100,
     z: 0
   },
 ];
 
 // Objects
 scene.objects = [
+  // {
+  //   type: 'sphere',
+  //   point: {
+  //     x: 0,
+  //     y: -150,
+  //     z: 0
+  //   },
+  //   color: {
+  //     r: 255,
+  //     g: 255,
+  //     b: 255
+  //   },
+  //   specular: 0.1,
+  //   lambert: 1,
+  //   ambient: 0.0,
+  //   radius: 1
+  // },
   {
     type: 'sphere',
     point: {
       x: 0,
       y: 0,
-      z: 3
+      z: -3
     },
     color: {
       r: 255,
       g: 127,
       b: 127
     },
-    specular: 0.1,
-    lambert: 0.9,
-    ambient: 0.0,
+    specular: 0,
+    lambert: 0.7,
+    ambient: 0.1,
     radius: 1
   },
-  //////
+  ////
   {
     type: 'sphere',
     point: {
@@ -69,9 +87,9 @@ scene.objects = [
       g: 255,
       b: 127
     },
-    specular: 0.1,
-    lambert: 0.9,
-    ambient: 0.0,
+    specular: 1,
+    lambert: 0,
+    ambient: 0,
     radius: 1
   },
   ///////
@@ -87,8 +105,8 @@ scene.objects = [
       g: 127,
       b: 255
     },
-    specular: 0.1,
-    lambert: 0.9,
+    specular: 0,
+    lambert: 1,
     ambient: 0.1,
     radius: 1
   },
@@ -105,8 +123,8 @@ scene.objects = [
       g: 255,
       b: 255
     },
-    specular: 0.1,
-    lambert: 0.9,
+    specular: 0,
+    lambert: 0.8,
     ambient: 0.1,
     radius: 98.5
   }
@@ -172,10 +190,11 @@ function trace(ray, scene, depth) {
 
 
   if (distance === Infinity) {
+    // console.log(ray.vector.y);
     return {
       // TODO set the proper bg.
       r: 0,
-      g: 51*(1 - ray.vector.y),
+      g: 51*(1 + ray.vector.y),
       b: 25.5
     }
   } else {
@@ -225,25 +244,44 @@ function sphereNormal(sphere, pos) {
 }
 
 function surface(ray, scene, object, intersection_point, normal, depth) {
-  var base = object.color;
+  var base = {
+    x: object.color.r,
+    y: object.color.g,
+    z: object.color.b
+  }
+  var c = Vector.ZERO;
   var lambertAmount = 0;
 
   if (object.lambert) {
     for (var i = 0; i < scene.lights.length; i++) {
       var lightPoint = scene.lights[i];
 
-      if (!isLightVisible(intersection_point, scene, lightPoint)) {
+      if (isLightVisible(intersection_point, scene, lightPoint)) {
         var contrib = Vector.dotProduct(Vector.unitVector(
           Vector.subtract(lightPoint, intersection_point)), normal);
 
         if (contrib > 0) lambertAmount += contrib;
-      };
+      }
     }
   }
 
+  if (object.specular) {
+    var reflectedRay = {
+      point: intersection_point,
+      vector: Vector.reflectThrough(ray.vector, normal)
+    };
+
+    var reflectedColor = trace(reflectedRay, scene, ++depth);
+    if (reflectedColor) {
+      var tmpc = { x: reflectedColor.r , y: reflectedColor.g, z: reflectedColor.b}
+      c = Vector.add(c, Vector.scale(tmpc, object.specular));
+    }
+  }
+
+
   lambertAmount = Math.min(1, lambertAmount);
 
-  var tmp = Vector.add3(Vector.ZERO,
+  var tmp = Vector.add3(c,
           Vector.scale(base, lambertAmount * object.lambert),
           Vector.scale(base, object.ambient));
 
