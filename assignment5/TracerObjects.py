@@ -6,7 +6,7 @@ from math import sqrt, pow, pi, floor
 import random
 
 class Sphere(object):
-	def __init__(self, center, radius, color=None, pattern="solid", name=None, is_mirror=False, is_light=False, casts_shadow=None):
+	def __init__(self, center, radius, color=None, pattern="solid", name=None, is_mirror=False, is_light=False, casts_shadow=None, lambert=0):
 		self.center = center
 		self.radius = float(radius)
 		self.color = color
@@ -19,6 +19,7 @@ class Sphere(object):
 		else:
 			self.casts_shadow = casts_shadow
 
+		self.lambert = lambert
 
 		if name == None:
 			self.name = "A circle of size {0} at {1}".format(self.radius, self.center)

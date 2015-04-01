@@ -1,4 +1,4 @@
-from Vectors import Vec3, dot, normal
+from Vectors import Vec3, dot, normal, unit
 from GraphicsUtils import *
 from TracerObjects import Sphere
 
@@ -62,16 +62,16 @@ class RayTracer(object):
 
 		if ray_hit_object:
 			# (Hit object (bool), hp, ho)
-			return (True, hit_point, hit_object)
+			return (True, hit_point, hit_object, distance_to_closest_hit)
 		else:
-			return (False, None, None)
+			return (False, None, None, None)
 
 	def ray_point_color(self, ray, depth=0):
 		if depth == MAX_DEPTH:
 			print "Hit da depth"
 			return RGBColor(0, 0, 0)
 
-		ray_hit_object, hit_point, hit_object = self.intersectedObject(ray)
+		ray_hit_object, hit_point, hit_object, hit_distance = self.intersectedObject(ray)
 
 		if ray_hit_object:
 			unit_normal = hit_point - hit_object.center
@@ -83,8 +83,9 @@ class RayTracer(object):
 			# Then take the normal of that.
 			color = hit_object.color
 			if hit_object.is_light is False and hit_object.is_mirror is False:
-				shader = max(0.0, normal_vector.y)
-				color = hit_object.colorAtPoint(hit_point) * shader
+				color = self.shade(color, hit_object, hit_point, normal_vector)
+				# shader = max(0.0, normal_vector.y)
+				# color = hit_object.colorAtPoint(hit_point) * shader
 
 			if hit_object.is_mirror:
 				color = self.reflect(hit_object, hit_point, ray, normal_vector, depth)
@@ -98,14 +99,28 @@ class RayTracer(object):
 		else:
 			return self.backgroundColor(ray)
 
+	def shade(self, color, hit_object, hit_point, normal):
+		lambert_amt = 0
+		for light in self.lights:
+			if self.is_visible(hit_object, light) == False:
+				contrib = dot(unit(light.center - hit_point), normal)
+
+				if (contrib > 0):
+					lambert_amt += contrib
+
+		lambert_amt = min(1, lambert_amt)
+
+		return color * lambert_amt
+
+
 	def shadow(self, color, hit_object, hit_point, normal):
-		SHADOW_DEPTH = 10
+		SHADOW_DEPTH = 2
 
 		for light in self.lights:
 			for _ in range(0, SHADOW_DEPTH):
 				ray = Ray(hit_point + normal * TINY, light.randomPointInSphere())
 
-				ray_hit_object, hp, ho = self.intersectedObject(ray)
+				ray_hit_object, hp, ho, dis = self.intersectedObject(ray)
 
 				if ray_hit_object and ho.casts_shadow and ho is not hit_object:
 					color = color.get_darker()
@@ -127,7 +142,7 @@ class RayTracer(object):
 
 
 
-		SAMPLES = 2
+		SAMPLES = 1
 		sum_r = 0
 		sum_g = 0
 		sum_b = 0
@@ -148,10 +163,18 @@ class RayTracer(object):
 		color = RGBColor(sum_r/SAMPLES, sum_g/SAMPLES, sum_b/SAMPLES)
 		return color
 
+	def is_visible(self, src, dest):
+		hit, pt, obj, dis = self.intersectedObject(Ray(src.center, unit(dest.center)))
+
+		if hit and obj != src:
+			return dis > -0.005
+		else:
+			return False
+
 	def add_objects(self):
 		# Vec3(left right, up down, back forth)
 
-		light_center = Vec3(0, 10, 0)
+		light_center = Vec3(10, 10, 10)
 		light_sphere = Sphere(light_center, 1,
 							color=RGBColor(1.0, 1.0, 1.0),
 							is_light=True)
@@ -195,7 +218,7 @@ class Ray(object):
 
 if __name__ == '__main__':
 	# Vec3(left right, up down, back forth)
-	tracer = RayTracer(300, 300, Vec3(0, 0, 0))
+	tracer = RayTracer(400, 400, Vec3(0, 0, 0))
 	tracer.add_objects()
 	tracer.trace()
 	tracer.export("out.png")

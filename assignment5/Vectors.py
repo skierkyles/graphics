@@ -43,3 +43,6 @@ def normal(a):
 	assert m != 0
 
 	return Vec3(a.x/m, a.y/m, a.z/m)
+
+def unit(a):
+	return a * 1 /  sqrt(dot(a, a))
