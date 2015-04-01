@@ -20,7 +20,7 @@ class RGBColor(object):
 	def get_256_tuple(self):
 		return to_int256_rgb(self.get_tuple())
 
-	def get_darker(self, amt=0.10):
+	def get_darker(self, amt=0.05):
 		return RGBColor(self.r - amt, self.g - amt, self.b - amt)
 
 	def get_brighter(self, amt=0.10):

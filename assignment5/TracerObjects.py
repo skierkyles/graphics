@@ -3,6 +3,8 @@ from GraphicsUtils import *
 
 from math import sqrt, pow, pi, floor
 
+import random
+
 class Sphere(object):
 	def __init__(self, center, radius, color=None, pattern="solid", name=None, is_mirror=False, is_light=False, casts_shadow=None):
 		self.center = center
@@ -69,14 +71,30 @@ class Sphere(object):
 
 		return (False, None)
 
+	def randomPointInSphere(self):
+		b = self.bounds()
+
+		while True:
+			x = random.uniform(b[0][0], b[0][1])
+			y = random.uniform(b[1][0], b[1][1])
+			z = random.uniform(b[2][0], b[2][1])
+
+			ran = Vec3(x, y, z)
+
+			if self.pointInSphere(ran):
+				return ran
+
+
+	def pointInSphere(self, point):
+		a = (self.center.x - point.x)**2 + (self.center.y - point.y)**2 + (self.center.z - point.z)**2
+		return a <= self.radius**2
+
 	def bounds(self):
-		# @Override
-		# public BoundingBox getBounds() {
-		# 	return new BoundingBox(position.x - radius, position.x + radius,
-		# 			position.y - radius, position.y + radius, position.z - radius,
-		# 			position.z + radius);
-		# }
-		print "A bounds method here"
+		ext = self.radius/10
+
+		return [[self.center.x - self.radius - ext, self.center.x + self.radius + ext],
+				[self.center.y - self.radius - ext, self.center.y + self.radius + ext],
+				[self.center.z - self.radius - ext, self.center.z + self.radius + ext]]
 
 	def __str__(self):
 		return "{0} - {1}".format(self.center, self.color)

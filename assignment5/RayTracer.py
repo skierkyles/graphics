@@ -17,6 +17,7 @@ class RayTracer(object):
 		self.width = float(width)
 		self.origin = origin
 		self.objects = []
+		self.lights = []
 
 
 	def trace(self):
@@ -65,7 +66,11 @@ class RayTracer(object):
 		else:
 			return (False, None, None)
 
-	def ray_point_color(self, ray):
+	def ray_point_color(self, ray, depth=0):
+		if depth == MAX_DEPTH:
+			print "Hit da depth"
+			return RGBColor(0, 0, 0)
+
 		ray_hit_object, hit_point, hit_object = self.intersectedObject(ray)
 
 		if ray_hit_object:
@@ -82,40 +87,34 @@ class RayTracer(object):
 				color = hit_object.colorAtPoint(hit_point) * shader
 
 			if hit_object.is_mirror:
-				color = self.recursiveReflections(hit_object, hit_point, ray, normal_vector)
+				color = self.reflect(hit_object, hit_point, ray, normal_vector, depth)
 
 			# Calculate shadows
-			color = self.calculate_shadow(color, hit_point, hit_object)
+			if hit_object.casts_shadow:
+				color = self.shadow(color, hit_object, hit_point, normal_vector)
 
 			return color
 
 		else:
 			return self.backgroundColor(ray)
 
-	def calculate_shadow(self, original_color, hit_point, hit_object):
-		SHADOW_DEPTH = 1
+	def shadow(self, color, hit_object, hit_point, normal):
+		SHADOW_DEPTH = 10
 
-		color = original_color
+		for light in self.lights:
+			for _ in range(0, SHADOW_DEPTH):
+				ray = Ray(hit_point + normal * TINY, light.randomPointInSphere())
 
+				ray_hit_object, hp, ho = self.intersectedObject(ray)
 
-
-		for obj in self.objects:
-			for x in range(0, SHADOW_DEPTH):
-				semi_rand = Vec3(0,1,1)
-
-				shadow_ray = Ray(hit_point, semi_rand)
-				hit, distance = obj.intersect(shadow_ray)
-
-				not_self = obj != hit_object
-
-				if hit and not_self and obj.casts_shadow:
+				if ray_hit_object and ho.casts_shadow and ho is not hit_object:
 					color = color.get_darker()
 
 		return color
 		# return RGBColor(0, 0, 0)
 
 
-	def recursiveReflections(self, obj, initial_hit, ray, normal, depth=0):
+	def reflect(self, obj, initial_hit, ray, normal, depth):
 		# https://www.cs.unc.edu/~rademach/xroads-RT/RTarticle.html
 		c1 = -dot(ray.destination, normal) #This is a integer!!
 		reflection = ray.destination + (2 * normal * c1)
@@ -123,17 +122,31 @@ class RayTracer(object):
 		# c = (2 * dot(ray.destination, normal) * normal)
 		# reflection = (ray.destination - c).normal()
 
-		reflection_ray = Ray(initial_hit + normal * TINY, reflection)
-		return self.ray_point_color(reflection_ray)
+		# Like Marbels
+		# rand_reflect = Vec3(reflection.x + random.uniform(-1, 1), reflection.y + random.uniform(-1, 1), reflection.z + random.uniform(-1, 1))
 
-		# print "Reflection of {0}".format(ray.destination)
-		# print rl
 
-		# if depth >= MAX_DEPTH:
-		# 	return "Done!"
-		#
-		# else:
-		# 	return self.recursiveReflections(obj, initial_hit, ray, normal, depth=depth+1)
+
+		SAMPLES = 2
+		sum_r = 0
+		sum_g = 0
+		sum_b = 0
+
+		for _ in range(0, SAMPLES):
+			dist = 0.1
+
+			rand_reflect = Vec3(reflection.x + random.uniform(-dist, dist), reflection.y + random.uniform(-dist, dist), reflection.z + random.uniform(-dist, dist))
+
+			reflection_ray = Ray(initial_hit + normal * TINY, rand_reflect)
+
+			c = self.ray_point_color(reflection_ray, depth + 1)
+			sum_r += c.r
+			sum_g += c.g
+			sum_b += c.b
+
+
+		color = RGBColor(sum_r/SAMPLES, sum_g/SAMPLES, sum_b/SAMPLES)
+		return color
 
 	def add_objects(self):
 		# Vec3(left right, up down, back forth)
@@ -165,6 +178,11 @@ class RayTracer(object):
 							color=RGBColor(1.0, 1.0, 1.0),
 							name="Monster")
 		self.objects.append(circle4)
+
+
+		for obj in self.objects:
+			if obj.is_light:
+				self.lights.append(obj)
 
 	def export(self, file_name):
 		self.image.save(file_name)
