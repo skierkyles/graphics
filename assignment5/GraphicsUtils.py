@@ -4,6 +4,9 @@ class RGBColor(object):
 		self.g = float(g)
 		self.b = float(b)
 
+	def __add__(self, b):
+		return RGBColor(self.r + b.r, self.g + b.g, self.b + b.b)
+
 	def __rmul__(self, b):
 		return self.__mul__(b)
 

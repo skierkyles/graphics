@@ -68,7 +68,6 @@ class RayTracer(object):
 
 	def ray_point_color(self, ray, depth=0):
 		if depth == MAX_DEPTH:
-			print "Hit da depth"
 			return RGBColor(0, 0, 0)
 
 		ray_hit_object, hit_point, hit_object, hit_distance = self.intersectedObject(ray)
@@ -84,11 +83,9 @@ class RayTracer(object):
 			color = hit_object.color
 			if hit_object.is_light is False and hit_object.is_mirror is False:
 				color = self.shade(color, hit_object, hit_point, normal_vector)
-				# shader = max(0.0, normal_vector.y)
-				# color = hit_object.colorAtPoint(hit_point) * shader
 
-			if hit_object.is_mirror:
-				color = self.reflect(hit_object, hit_point, ray, normal_vector, depth)
+			if hit_object.specular > 0:
+				color = self.reflect(color, hit_object, hit_point, ray, normal_vector, depth)
 
 			# Calculate shadows
 			if hit_object.casts_shadow:
@@ -110,14 +107,14 @@ class RayTracer(object):
 
 		lambert_amt = min(1, lambert_amt)
 
-		return color * lambert_amt
+		return color * (lambert_amt * hit_object.lambert)
 
 
 	def shadow(self, color, hit_object, hit_point, normal):
-		SHADOW_DEPTH = 2
+		SAMPLES = 50
 
 		for light in self.lights:
-			for _ in range(0, SHADOW_DEPTH):
+			for _ in range(0, SAMPLES):
 				ray = Ray(hit_point + normal * TINY, light.randomPointInSphere())
 
 				ray_hit_object, hp, ho, dis = self.intersectedObject(ray)
@@ -129,7 +126,7 @@ class RayTracer(object):
 		# return RGBColor(0, 0, 0)
 
 
-	def reflect(self, obj, initial_hit, ray, normal, depth):
+	def reflect(self, color, obj, initial_hit, ray, normal, depth):
 		# https://www.cs.unc.edu/~rademach/xroads-RT/RTarticle.html
 		c1 = -dot(ray.destination, normal) #This is a integer!!
 		reflection = ray.destination + (2 * normal * c1)
@@ -141,14 +138,18 @@ class RayTracer(object):
 		# rand_reflect = Vec3(reflection.x + random.uniform(-1, 1), reflection.y + random.uniform(-1, 1), reflection.z + random.uniform(-1, 1))
 
 
+		# We only need to do multiple samples if the smudge is high.
+		if obj.smudge > 0:
+			SAMPLES = 30
+		else:
+			SAMPLES = 1
 
-		SAMPLES = 1
 		sum_r = 0
 		sum_g = 0
 		sum_b = 0
 
 		for _ in range(0, SAMPLES):
-			dist = 0.1
+			dist = obj.smudge
 
 			rand_reflect = Vec3(reflection.x + random.uniform(-dist, dist), reflection.y + random.uniform(-dist, dist), reflection.z + random.uniform(-dist, dist))
 
@@ -160,8 +161,13 @@ class RayTracer(object):
 			sum_b += c.b
 
 
-		color = RGBColor(sum_r/SAMPLES, sum_g/SAMPLES, sum_b/SAMPLES)
-		return color
+		reflect_color = RGBColor(sum_r/SAMPLES, sum_g/SAMPLES, sum_b/SAMPLES)
+
+		if obj.is_mirror:
+			return reflect_color
+		else:
+			return color + (reflect_color * obj.specular)
+
 
 	def is_visible(self, src, dest):
 		hit, pt, obj, dis = self.intersectedObject(Ray(src.center, unit(dest.center)))
@@ -180,26 +186,37 @@ class RayTracer(object):
 							is_light=True)
 		self.objects.append(light_sphere)
 
+		light_center2 = Vec3(-10, 10, 10)
+		light_sphere2 = Sphere(light_center2, 1,
+							color=RGBColor(1.0, 1.0, 1.0),
+							is_light=True)
+		# self.objects.append(light_sphere2)
+
 		sphere1_center = Vec3(0, 0, -3)
 		red_center = Sphere(sphere1_center, 1,
-							color=RGBColor(1.0, 0.5, 0.5)) #Red
+							color=RGBColor(1.0, 0.5, 0.5),
+							lambert=1) #Red
 		self.objects.append(red_center)
 
 		sphere2_center = Vec3(2, 0, -4)
 		green_right = Sphere(sphere2_center, 1,
-							color=RGBColor(0.5, 1.0, 0.5)) #Green
+							color=RGBColor(0.5, 1.0, 0.5),
+							lambert=0.8,
+							specular=0.5,
+							smudge=0.1) #Green
 		self.objects.append(green_right)
 
 		sphere3_center = Vec3(-2, 0, -3)
 		blue_left = Sphere(sphere3_center, 1,
-							color=RGBColor(0.5, 0.5, 1.0),
+							color=RGBColor(1.0, 1.0, 1.0),
 							is_mirror=True) #Blue
 		self.objects.append(blue_left)
 
 		sphere4_center = Vec3(0, -100, 0)
 		circle4 = Sphere(sphere4_center, 98.5,
 							color=RGBColor(1.0, 1.0, 1.0),
-							name="Monster")
+							name="Monster",
+							lambert=1)
 		self.objects.append(circle4)
 
 
@@ -218,7 +235,7 @@ class Ray(object):
 
 if __name__ == '__main__':
 	# Vec3(left right, up down, back forth)
-	tracer = RayTracer(400, 400, Vec3(0, 0, 0))
+	tracer = RayTracer(1000, 1000, Vec3(0, 0, 0))
 	tracer.add_objects()
 	tracer.trace()
 	tracer.export("out.png")

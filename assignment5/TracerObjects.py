@@ -6,20 +6,30 @@ from math import sqrt, pow, pi, floor
 import random
 
 class Sphere(object):
-	def __init__(self, center, radius, color=None, pattern="solid", name=None, is_mirror=False, is_light=False, casts_shadow=None, lambert=0):
+	def __init__(self, center, radius, color=None, pattern="solid", name=None, is_mirror=False, is_light=False, casts_shadow=None, lambert=0.3, specular=0.0, smudge=0.0):
 		self.center = center
 		self.radius = float(radius)
 		self.color = color
 		self.pattern = pattern
 
 		self.is_mirror = is_mirror
+		if is_mirror:
+			self.specular = 1
+		else:
+			self.specular = specular
+
 		self.is_light = is_light
 		if casts_shadow == None:
 			self.casts_shadow = False if self.is_light else True
 		else:
 			self.casts_shadow = casts_shadow
 
-		self.lambert = lambert
+		if self.is_light:
+			self.lambert = 1
+		else:
+			self.lambert = lambert
+
+		self.smudge = smudge
 
 		if name == None:
 			self.name = "A circle of size {0} at {1}".format(self.radius, self.center)
