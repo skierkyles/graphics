@@ -46,3 +46,8 @@ def normal(a):
 
 def unit(a):
 	return a * 1 /  sqrt(dot(a, a))
+
+class Ray(object):
+	def __init__(self, origin, destination):
+		self.origin = origin
+		self.destination = destination

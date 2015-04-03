@@ -101,11 +101,9 @@ class Sphere(object):
 		return a <= self.radius**2
 
 	def bounds(self):
-		ext = self.radius/10
-
-		return [[self.center.x - self.radius - ext, self.center.x + self.radius + ext],
-				[self.center.y - self.radius - ext, self.center.y + self.radius + ext],
-				[self.center.z - self.radius - ext, self.center.z + self.radius + ext]]
+		return [[self.center.x - self.radius, self.center.x + self.radius],
+				[self.center.y - self.radius, self.center.y + self.radius],
+				[self.center.z - self.radius, self.center.z + self.radius]]
 
 	def __str__(self):
 		return "{0} - {1}".format(self.center, self.color)
