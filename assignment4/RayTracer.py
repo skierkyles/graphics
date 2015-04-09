@@ -33,13 +33,6 @@ class RayTracer(object):
 				color = self.ray_point_color(ray)
 				self.image.putpixel((i,j), color.get_256_tuple())
 
-	def backgroundColor(self, ray):
-		r = 0
-		g = 0.2*(1 - ray.destination.y)
-		b = 0.1
-
-		return RGBColor(r, g, b)
-
 	def intersectedObject(self, ray):
 		ray_hit_object = False
 		hit_point = None
@@ -102,7 +95,12 @@ class RayTracer(object):
 		else:
 			return self.backgroundColor(ray)
 
+	def backgroundColor(self, ray):
+		r = 0
+		g = 0.2*(1 - ray.destination.y)
+		b = 0.1
 
+		return RGBColor(r, g, b)
 
 	def recursiveReflections(self, obj, initial_hit, ray, normal, depth=0):
 		# https://www.cs.unc.edu/~rademach/xroads-RT/RTarticle.html
@@ -165,7 +163,7 @@ class Ray(object):
 
 if __name__ == '__main__':
 	# Vec3(left right, up down, back forth)
-	tracer = RayTracer(450, 450, Vec3(0, 0, 0))
+	tracer = RayTracer(700, 700, Vec3(0, 0, 0))
 	tracer.add_objects()
 	tracer.trace()
 	tracer.export("out.png")

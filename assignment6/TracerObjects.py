@@ -43,7 +43,7 @@ class Sphere(object):
 							self.color.g * abs(point.y),
 							self.color.b * abs(point.z))
 		elif self.pattern == "checkerboard":
-			SCALE = .8
+			SCALE = 0.8
 			OFFSET = 21423142
 
 			x = floor((point.x + OFFSET) / SCALE) % 2 == 0
@@ -107,3 +107,42 @@ class Sphere(object):
 
 	def __str__(self):
 		return "{0} - {1}".format(self.center, self.color)
+
+class Plane(object):
+	def __init__(self, center, normal, color=None, is_mirror=False, is_light=False, casts_shadow=None, lambert=0.3, specular=0.0, smudge=0.0):
+		self.center = center
+		self.normal = normal
+
+		self.color = color
+		self.is_mirror = is_mirror
+		if is_mirror:
+			self.specular = 1
+		else:
+			self.specular = specular
+
+		self.is_light = is_light
+		if casts_shadow == None:
+			self.casts_shadow = False if self.is_light else True
+		else:
+			self.casts_shadow = casts_shadow
+
+		if self.is_light:
+			self.lambert = 1
+		else:
+			self.lambert = lambert
+
+		self.smudge = smudge
+
+	def intersect(self, ray):
+		denom = dot(ray.destination, self.normal)
+		if abs(denom) < 1e-6:
+			return (False, None)
+
+		d = dot(self.center, self.normal) / denom
+		if d < 0:
+			return (False, None)
+
+		return (True, d)
+
+	def colorAtPoint(self, point):
+		return self.color

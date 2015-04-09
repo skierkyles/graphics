@@ -1,30 +1,35 @@
 from Vectors import Vec3, Ray, dot, normal, unit
 from GraphicsUtils import *
-from TracerObjects import Sphere
+from TracerObjects import Sphere, Plane
 
 from PIL import Image
-from math import sqrt, pow, pi
+from math import sqrt, pow, pi, atan2, asin
 
 import random
 
 from multiprocessing import Pool
 
+CORES = 7
 MAX_DEPTH = 5
 TINY = 0.00000001
 FOCUS_DISTANCE = 2
 CAMERA_SIZE = 0
-SHADOW_SAMPLES = 5
-REFLECT_SAMPLES = 3
+SHADOW_SAMPLES = 1250
+REFLECT_SAMPLES = 250
 
-height = float(180)
-width = float(180)
+height = float(1250)
+width = float(1250)
 origin = Vec3(0, 0, 0)
+
+image = Image.open('uffizi_cross.tif')
+background_image = image.convert('RGB')
+background_image_data = image.load()
 
 objects = []
 lights = []
 
 def multi_thread_trace():
-	p = Pool(2)
+	p = Pool(CORES)
 
 	params = []
 	for i in range(int(width)):
@@ -73,11 +78,10 @@ def evaluate_ray(pt):
 	z = -1.0
 
 	ray_direction = Vec3(x, y, z)
-	origin2 = CAMERA_SIZE*random_xy_disk()
-
-	ray_direction *= FOCUS_DISTANCE
-	ray_direction -= origin2
-
+	# origin2 = CAMERA_SIZE*random_xy_disk()
+	#
+	# ray_direction *= FOCUS_DISTANCE
+	# ray_direction -= origin2
 	ray = Ray(origin, ray_direction)
 
 	return ray_point_color(ray)
@@ -87,8 +91,14 @@ def backgroundColor(ray):
 	r = 0
 	g = 0.2*(1 - ray.destination.y)
 	b = 0.1
-
 	return RGBColor(r, g, b)
+
+	# u = 0.5 + atan2(ray.destination.z, ray.destination.y) / (2*pi)
+	# v = 0.5 - asin(ray.destination.y) / pi
+	#
+	# r,g,b = background_image_data[int(u), int(v)]
+
+	# return RGBColor(float(r)/255, float(g)/255, float(b)/255)
 
 def intersectedObject(ray):
 	ray_hit_object = False
@@ -129,7 +139,7 @@ def ray_point_color(ray, depth=0):
 		# So take the point on the surface of the sphere
 		# then, figure out the distance from it to the center.
 		# Then take the normal of that.
-		color = hit_object.color
+		color = hit_object.colorAtPoint(hit_point)
 		if hit_object.is_light is False and hit_object.is_mirror is False:
 			color = shade(color, hit_object, hit_point, normal_vector)
 
@@ -237,17 +247,21 @@ def is_visible(src, dest):
 def add_objects():
 	# Vec3(left right, up down, back forth)
 
-	light_center = Vec3(0, 10, 5)
+	light_center = Vec3(0, 10, 3)
 	light_sphere = Sphere(light_center, 1.5,
 						color=RGBColor(1.0, 1.0, 1.0),
 						is_light=True)
 	objects.append(light_sphere)
 
-	light_center2 = Vec3(-10, 10, 10)
+	light_center2 = Vec3(-1.5, 25, 0)
 	light_sphere2 = Sphere(light_center2, 1,
 						color=RGBColor(1.0, 1.0, 1.0),
 						is_light=True)
 	# objects.append(light_sphere2)
+
+	plane1_center = Vec3(0, 0, 10)
+	plane = Plane(plane1_center, Vec3(1, 0, 0), RGBColor(1.0, 0.5, 1.0))
+	# objects.append(plane)
 
 	sphere1_center = Vec3(0, 0, -3)
 	red_center = Sphere(sphere1_center, 1,
@@ -257,17 +271,26 @@ def add_objects():
 
 	sphere2_center = Vec3(2, 0, -4)
 	green_right = Sphere(sphere2_center, 1,
-						color=RGBColor(0.5, 1.0, 0.5),
 						lambert=0.8,
-						specular=0.5,
-						smudge=0.1) #Green
+						specular=0.08,
+						color=RGBColor(0.5, 1.0, 0.5),
+						smudge=0.1, pattern="related_abs") #Green
 	objects.append(green_right)
 
 	sphere3_center = Vec3(-2, 0, -3)
 	blue_left = Sphere(sphere3_center, 1,
 						color=RGBColor(1.0, 1.0, 1.0),
-						is_mirror=True) #Blue
+						is_mirror=True,
+						smudge=0.02) #Blue
 	objects.append(blue_left)
+
+	sphere5_center = Vec3(-1.5, 5, 20)
+	checker_center = Sphere(sphere5_center, 6,
+						color=RGBColor(0.0, 0.0, 1.0),
+						pattern="checkerboard",
+						casts_shadow=False,
+						lambert=1.0)
+	objects.append(checker_center)
 
 	sphere4_center = Vec3(0, -100, 0)
 	circle4 = Sphere(sphere4_center, 98.5,
@@ -284,10 +307,12 @@ def add_objects():
 # def export(file_name):
 	# image.save(file_name)
 
+import time
 
 if __name__ == '__main__':
 	# Vec3(left right, up down, back forth)
 
+	start_time = time.time()
 
 	# tracer = RayTracer(width, height, Vec3(0, 0, 0))
 	add_objects()
@@ -305,5 +330,6 @@ if __name__ == '__main__':
 		image.putpixel(pixels[_i], colors[_i].get_256_tuple())
 
 	image.save('out.png')
+	print("--- %s seconds ---" % (time.time() - start_time))
 
 	# tracer.export("out.png")

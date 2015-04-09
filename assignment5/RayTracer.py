@@ -12,15 +12,15 @@ from multiprocessing import Pool
 MAX_DEPTH = 5
 TINY = 0.00000001
 
-height = float(100)
-width = float(100)
+height = float(1000)
+width = float(1000)
 origin = Vec3(0, 0, 0)
 
 objects = []
 lights = []
 
 def multi_thread_trace():
-	p = Pool(2)
+	p = Pool(7)
 
 	params = []
 	for i in range(int(width)):
@@ -171,7 +171,7 @@ def reflect(color, obj, initial_hit, ray, normal, depth):
 
 	# We only need to do multiple samples if the smudge is high.
 	if obj.smudge > 0:
-		SAMPLES = 2
+		SAMPLES = 35
 	else:
 		SAMPLES = 1
 
