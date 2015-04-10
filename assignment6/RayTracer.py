@@ -9,16 +9,16 @@ import random
 
 from multiprocessing import Pool
 
-CORES = 7
+CORES = 2
 MAX_DEPTH = 5
 TINY = 0.00000001
 FOCUS_DISTANCE = 2
 CAMERA_SIZE = 0
-SHADOW_SAMPLES = 1250
-REFLECT_SAMPLES = 250
+SHADOW_SAMPLES = 4
+REFLECT_SAMPLES = 15
 
-height = float(1250)
-width = float(1250)
+height = float(100)
+width = float(100)
 origin = Vec3(0, 0, 0)
 
 image = Image.open('uffizi_cross.tif')
@@ -146,6 +146,9 @@ def ray_point_color(ray, depth=0):
 		if hit_object.specular > 0:
 			color = reflect(color, hit_object, hit_point, ray, normal_vector, depth)
 
+		if hit_object.diffuse > 0:
+			color = diffuse(color, hit_object, hit_point, ray, normal_vector, depth)
+
 		# Calculate shadows
 		if hit_object.casts_shadow:
 			color = shadow(color, hit_object, hit_point, normal_vector)
@@ -192,6 +195,29 @@ def shadow(color, hit_object, hit_point, normal):
 	return RGBColor(sum_r/SHADOW_SAMPLES, sum_g/SHADOW_SAMPLES, sum_b/SHADOW_SAMPLES)
 	# return RGBColor(0, 0, 0)
 
+def diffuse(color, obj, initial_hit, ray, normal, depth):
+	sum_r = 0
+	sum_g = 0
+	sum_b = 0
+
+	unit_sphere = Sphere(Vec3(0, 0, 0), 1)
+
+	for light in lights:
+		for _ in range(0, REFLECT_SAMPLES):
+			inter_reflection = Ray(initial_hit + (normal * TINY), (normal + unit_sphere.randomPointInSphere()))
+
+			inter_color = ray_point_color(inter_reflection, depth + 1)
+
+			sum_r += inter_color.r
+			sum_g += inter_color.g
+			sum_b += inter_color.b
+
+	inter_color = RGBColor(sum_r/REFLECT_SAMPLES, sum_g/REFLECT_SAMPLES, sum_b/REFLECT_SAMPLES)
+
+	out_color = (inter_color * obj.diffuse) + color
+
+
+	return inter_color
 
 def reflect(color, obj, initial_hit, ray, normal, depth):
 	# https://www.cs.unc.edu/~rademach/xroads-RT/RTarticle.html
@@ -247,7 +273,7 @@ def is_visible(src, dest):
 def add_objects():
 	# Vec3(left right, up down, back forth)
 
-	light_center = Vec3(0, 10, 3)
+	light_center = Vec3(0, 10, 8)
 	light_sphere = Sphere(light_center, 1.5,
 						color=RGBColor(1.0, 1.0, 1.0),
 						is_light=True)
@@ -266,7 +292,8 @@ def add_objects():
 	sphere1_center = Vec3(0, 0, -3)
 	red_center = Sphere(sphere1_center, 1,
 						color=RGBColor(1.0, 0.5, 0.5),
-						lambert=1) #Red
+						lambert=1,
+						diffuse=0.01) #Red
 	objects.append(red_center)
 
 	sphere2_center = Vec3(2, 0, -4)
@@ -274,7 +301,8 @@ def add_objects():
 						lambert=0.8,
 						specular=0.08,
 						color=RGBColor(0.5, 1.0, 0.5),
-						smudge=0.1, pattern="related_abs") #Green
+						smudge=0.1, pattern="related_abs",
+						diffuse=0.9) #Green
 	objects.append(green_right)
 
 	sphere3_center = Vec3(-2, 0, -3)
