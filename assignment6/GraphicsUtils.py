@@ -37,6 +37,9 @@ class RGBColor(object):
 def invert(color):
 	return RGBColor(1 - color.r, 1 - color.g, 1 - color.b)
 
+def color_times_color(c, d):
+	return RGBColor(c.r * d.r, c.g * d.g, c.b * d.b)
+
 def to_256_rgb(rgb):
 	r = rgb[0] * 256
 	g = rgb[1] * 256

@@ -10,12 +10,12 @@ import random
 from multiprocessing import Pool
 
 CORES = 2
-MAX_DEPTH = 5
+MAX_DEPTH = 3
 TINY = 0.00000001
 FOCUS_DISTANCE = 2
 CAMERA_SIZE = 0
 SHADOW_SAMPLES = 4
-REFLECT_SAMPLES = 15
+REFLECT_SAMPLES = 60
 
 height = float(100)
 width = float(100)
@@ -200,9 +200,11 @@ def diffuse(color, obj, initial_hit, ray, normal, depth):
 	sum_g = 0
 	sum_b = 0
 
-	unit_sphere = Sphere(Vec3(0, 0, 0), 1)
+	unit_sphere = Sphere(Vec3(0, 0, 0), 0.5)
 
 	for light in lights:
+		# lv = light.center - initial_hit
+		# lv = lv.normal()
 		for _ in range(0, REFLECT_SAMPLES):
 			inter_reflection = Ray(initial_hit + (normal * TINY), (normal + unit_sphere.randomPointInSphere()))
 
@@ -214,10 +216,10 @@ def diffuse(color, obj, initial_hit, ray, normal, depth):
 
 	inter_color = RGBColor(sum_r/REFLECT_SAMPLES, sum_g/REFLECT_SAMPLES, sum_b/REFLECT_SAMPLES)
 
-	out_color = (inter_color * obj.diffuse) + color
+	out_color = color_times_color(inter_color, obj.color) + color
 
 
-	return inter_color
+	return out_color
 
 def reflect(color, obj, initial_hit, ray, normal, depth):
 	# https://www.cs.unc.edu/~rademach/xroads-RT/RTarticle.html
@@ -301,8 +303,8 @@ def add_objects():
 						lambert=0.8,
 						specular=0.08,
 						color=RGBColor(0.5, 1.0, 0.5),
-						smudge=0.1, pattern="related_abs",
-						diffuse=0.9) #Green
+						smudge=0.1,
+						diffuse=0.0) #Green
 	objects.append(green_right)
 
 	sphere3_center = Vec3(-2, 0, -3)
@@ -324,7 +326,7 @@ def add_objects():
 	circle4 = Sphere(sphere4_center, 98.5,
 						color=RGBColor(1.0, 1.0, 1.0),
 						name="Monster",
-						lambert=1)
+						lambert=1, diffuse=0.1)
 	objects.append(circle4)
 
 
