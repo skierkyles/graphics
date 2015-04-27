@@ -66,9 +66,9 @@ class Sphere(object):
 	def colorAtPoint(self, point):
 
 		if self.pattern == "related_abs":
-			return RGBColor(self.color.r * abs(point.x),
-							self.color.g * abs(point.y),
-							self.color.b * abs(point.z))
+			return RGBColor(self.color.r * abs(point.x)/4,
+							self.color.g * abs(point.y)/4,
+							self.color.b * abs(point.z)/4)
 		elif self.pattern == "checkerboard":
 			SCALE = 0.8
 			OFFSET = 21423142

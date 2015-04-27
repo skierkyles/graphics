@@ -9,7 +9,7 @@ import random
 
 from multiprocessing import Pool
 
-CORES = 2
+CORES = 1
 MAX_DEPTH = 3
 TINY = 0.00000001
 FOCUS_DISTANCE = 2
@@ -336,33 +336,55 @@ def add_objects():
 	objects.append(station)
 
 
+	left_stationary = Vec3(sin(2.2) * 5, -0 + cos(2.2) * 5, -5)
+	lstation = Sphere(left_stationary, 0.7,
+						color=RGBColor(0.9, 0.9, 1.0),
+						pattern="related_abs",
+						lambert=0.7)
+	objects.append(lstation)
+
+
+
+	right_stationary = Vec3(sin(0.4) * 4.2, -0 + cos(0.4) * 4.2, -5)
+	rstation = Sphere(right_stationary, 1,
+						color=RGBColor(1.0, 1.0, 0.5))
+	objects.append(rstation)
+
+
+
 	top_giant = Vec3(0, 12000000, 0)
 	top = Sphere(top_giant, 10000000,
-					color=RGBColor(0.5, 0.1, 1))
+					color=RGBColor(0.5, 0.1, 1),
+					diffuse=0.1)
 	objects.append(top)
 
 	bottom_giant = Vec3(0, -12000000, 0)
 	bottom = Sphere(bottom_giant, 10000000,
-					color=RGBColor(0.5, 0.1, 1))
+					color=RGBColor(0.5, 0.1, 1),
+					diffuse=0.1)
 	objects.append(bottom)
+
+
+
+
 
 	# DAYUMNAMIC OBJECTS!
 	rotater_pos = None
 	rotater = None
 
 	# CENTER
-	x_pos= 0.0
-	y_pos = 0.0
-	for x in range(0, 65):
-		rotater_pos = Vec3(sin(x_pos) * 3.5, -0 + cos(y_pos) * 3.5, -5)
-		rotater = Sphere(rotater_pos, 1,
-							color=RGBColor(1.0, 1.0, 1.0),
-							lambert=0.9,
-							diffuse=0.0)
-		objects.append(rotater)
-
-		x_pos += 0.1
-		y_pos += 0.1
+	# x_pos= 0.0
+	# y_pos = 0.0
+	# for x in range(0, 65):
+	# 	rotater_pos = Vec3(sin(x_pos) * 3.5, -0 + cos(y_pos) * 3.5, -5)
+	# 	rotater = Sphere(rotater_pos, 1,
+	# 						color=RGBColor(1.0, 1.0, 1.0),
+	# 						lambert=0.9,
+	# 						diffuse=0.0)
+	# 	objects.append(rotater)
+	#
+	# 	x_pos += 0.1
+	# 	y_pos += 0.1
 
 	# BOTTOM
 	x_pos = 0.0
@@ -373,6 +395,7 @@ def add_objects():
 							color=RGBColor(1.0, 1.0, 1.0),
 							lambert=1,
 							diffuse=0.0,
+							smudge=0.1,
 							is_mirror=True)
 		objects.append(rotater)
 
@@ -388,6 +411,7 @@ def add_objects():
 							color=RGBColor(1.0, 1.0, 1.0),
 							lambert=1,
 							diffuse=0.0,
+							smudge=0.1,
 							is_mirror=True)
 		objects.append(rotater)
 
