@@ -47,6 +47,9 @@ def normal(a):
 def unit(a):
 	return a * 1 /  sqrt(dot(a, a))
 
+def cross(a, b):
+	return Vec3(a.y*b.z-a.z*b.y, a.z*b.x - a.x*b.z, a.x*b.y - a.y*b.x)
+
 class Ray(object):
 	def __init__(self, origin, destination):
 		self.origin = origin

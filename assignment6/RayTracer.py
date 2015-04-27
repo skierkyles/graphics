@@ -3,7 +3,7 @@ from GraphicsUtils import *
 from TracerObjects import Sphere, Plane
 
 from PIL import Image
-from math import sqrt, pow, pi, atan2, asin
+from math import sqrt, pow, pi, atan2, asin, sin, cos
 
 import random
 
@@ -14,16 +14,16 @@ MAX_DEPTH = 3
 TINY = 0.00000001
 FOCUS_DISTANCE = 2
 CAMERA_SIZE = 0
-SHADOW_SAMPLES = 4
-REFLECT_SAMPLES = 60
+SHADOW_SAMPLES = 10
+REFLECT_SAMPLES = 10
 
-height = float(100)
-width = float(100)
-origin = Vec3(0, 0, 0)
+height = float(250)
+width = float(250)
+origin = Vec3(0, 0, 5.5)
 
-image = Image.open('uffizi_cross.tif')
-background_image = image.convert('RGB')
-background_image_data = image.load()
+# image = Image.open('uffizi_cross.tif')
+# background_image = image.convert('RGB')
+# background_image_data = image.load()
 
 objects = []
 lights = []
@@ -279,7 +279,7 @@ def add_objects():
 	light_sphere = Sphere(light_center, 1.5,
 						color=RGBColor(1.0, 1.0, 1.0),
 						is_light=True)
-	objects.append(light_sphere)
+	# objects.append(light_sphere)
 
 	light_center2 = Vec3(-1.5, 25, 0)
 	light_sphere2 = Sphere(light_center2, 1,
@@ -291,12 +291,12 @@ def add_objects():
 	plane = Plane(plane1_center, Vec3(1, 0, 0), RGBColor(1.0, 0.5, 1.0))
 	# objects.append(plane)
 
-	sphere1_center = Vec3(0, 0, -3)
+	sphere1_center = Vec3(0, 2, -7)
 	red_center = Sphere(sphere1_center, 1,
 						color=RGBColor(1.0, 0.5, 0.5),
-						lambert=1,
-						diffuse=0.01) #Red
-	objects.append(red_center)
+						pattern="pool_9",
+						lambert=1) #Red
+	# objects.append(red_center)
 
 	sphere2_center = Vec3(2, 0, -4)
 	green_right = Sphere(sphere2_center, 1,
@@ -305,14 +305,14 @@ def add_objects():
 						color=RGBColor(0.5, 1.0, 0.5),
 						smudge=0.1,
 						diffuse=0.0) #Green
-	objects.append(green_right)
+	# objects.append(green_right)
 
 	sphere3_center = Vec3(-2, 0, -3)
 	blue_left = Sphere(sphere3_center, 1,
 						color=RGBColor(1.0, 1.0, 1.0),
 						is_mirror=True,
 						smudge=0.02) #Blue
-	objects.append(blue_left)
+	# objects.append(blue_left)
 
 	sphere5_center = Vec3(-1.5, 5, 20)
 	checker_center = Sphere(sphere5_center, 6,
@@ -320,15 +320,79 @@ def add_objects():
 						pattern="checkerboard",
 						casts_shadow=False,
 						lambert=1.0)
-	objects.append(checker_center)
+	# objects.append(checker_center)
 
 	sphere4_center = Vec3(0, -100, 0)
 	circle4 = Sphere(sphere4_center, 98.5,
 						color=RGBColor(1.0, 1.0, 1.0),
-						name="Monster",
 						lambert=1, diffuse=0.1)
-	objects.append(circle4)
+	# objects.append(circle4)
 
+	# FINAL OBJECTS!!!
+	center_stationary = Vec3(0, 0, -5)
+	station = Sphere(center_stationary, 1,
+						color=RGBColor(1.0, 1.0, 1.0),
+						is_light=True)
+	objects.append(station)
+
+
+	top_giant = Vec3(0, 12000000, 0)
+	top = Sphere(top_giant, 10000000,
+					color=RGBColor(0.5, 0.1, 1))
+	objects.append(top)
+
+	bottom_giant = Vec3(0, -12000000, 0)
+	bottom = Sphere(bottom_giant, 10000000,
+					color=RGBColor(0.5, 0.1, 1))
+	objects.append(bottom)
+
+	# DAYUMNAMIC OBJECTS!
+	rotater_pos = None
+	rotater = None
+
+	# CENTER
+	x_pos= 0.0
+	y_pos = 0.0
+	for x in range(0, 65):
+		rotater_pos = Vec3(sin(x_pos) * 3.5, -0 + cos(y_pos) * 3.5, -5)
+		rotater = Sphere(rotater_pos, 1,
+							color=RGBColor(1.0, 1.0, 1.0),
+							lambert=0.9,
+							diffuse=0.0)
+		objects.append(rotater)
+
+		x_pos += 0.1
+		y_pos += 0.1
+
+	# BOTTOM
+	x_pos = 0.0
+	y_pos = 0.0
+	for x in range(0, 650):
+		rotater_pos = Vec3(sin(x_pos) * 7.5, -2, -5 + cos(y_pos) * 7.5)
+		rotater = Sphere(rotater_pos, 0.5,
+							color=RGBColor(1.0, 1.0, 1.0),
+							lambert=1,
+							diffuse=0.0,
+							is_mirror=True)
+		objects.append(rotater)
+
+		x_pos += 0.01
+		y_pos += 0.01
+
+	# TOP
+	x_pos = 0.0
+	y_pos = 0.0
+	for x in range(0, 650):
+		rotater_pos = Vec3(sin(x_pos) * 7.5, 2, -5 + cos(y_pos) * 7.5)
+		rotater = Sphere(rotater_pos, 0.5,
+							color=RGBColor(1.0, 1.0, 1.0),
+							lambert=1,
+							diffuse=0.0,
+							is_mirror=True)
+		objects.append(rotater)
+
+		x_pos += 0.01
+		y_pos += 0.01
 
 	for obj in objects:
 		if obj.is_light:

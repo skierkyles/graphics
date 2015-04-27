@@ -1,9 +1,11 @@
-from Vectors import Vec3, dot, normal
-from GraphicsUtils import *
+from PIL import Image
 
-from math import sqrt, pow, pi, floor
+from math import sqrt, pow, pi, floor, acos
 
 import random
+
+from Vectors import Vec3, dot, normal, unit, cross
+from GraphicsUtils import *
 
 class Sphere(object):
 	def __init__(self, center, radius, color=None, pattern="solid", name=None, is_mirror=False, is_light=False, casts_shadow=None, lambert=0.3, specular=0.0, diffuse=0.0, smudge=0.0):
@@ -41,6 +43,26 @@ class Sphere(object):
 		else:
 			self.name = name
 
+		self.is_texture = False
+		if pattern == "earth":
+			self.is_texture = True
+			self.texture = Image.open("texture/earth.jpg")
+
+		if pattern == "camo":
+			self.is_texture = True
+			self.texture = Image.open("texture/camo.jpg")
+
+		if pattern == "pool_1":
+			self.is_texture = True
+			self.texture = Image.open("texture/Ball1.jpg")
+
+		if pattern == "pool_9":
+			self.is_texture = True
+			self.texture = Image.open("texture/Ball9.jpg")
+
+		if self.is_texture:
+			self.texture_width, self.texture_height = self.texture.size
+
 	def colorAtPoint(self, point):
 
 		if self.pattern == "related_abs":
@@ -59,6 +81,44 @@ class Sphere(object):
 				return self.color
 			else:
 				return self.color.get_invert()
+		elif self.is_texture:
+			north_pole = self.center + self.radius * Vec3(1, 0, 0)
+			north_pole = unit(north_pole)
+
+			equator = self.center + self.radius * Vec3(1, 0, 0)
+			equator = unit(equator)
+
+			point = unit(self.center + point)
+
+			# print "North Pole {0}".format(north_pole)
+			# print "Equator {0}".format(equator)
+			# print "HP {0}".format(point)
+
+			phi = acos(-dot(north_pole, point))
+			v = phi / pi
+
+			theta = acos(dot(point,equator))
+			if dot(cross(north_pole, equator), point) > 0:
+				u = theta
+			else:
+				u = 1 - theta
+
+			# u = min(0.999999999, u)
+			# u = max(0, u)
+			#
+			# v = min(0.999999999, v)
+			# v = max(0, v)
+
+			# print "Width Point: {}".format(v * self.texture_width)
+			# print "Height Point: {}".format(u * self.texture_height)
+
+			cords = (int(v * self.texture_width), int(u * self.texture_height))
+			c = self.texture.getpixel(cords)
+
+
+			out_c = RGBColor(c[0]/255.0, c[1]/255.0, c[2]/255.0)
+			return out_c
+
 		else:
 			return self.color
 
